@@ -28,9 +28,19 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  TextEditingController _varStr1Controller = TextEditingController();
-  TextEditingController _templateStrController = TextEditingController();
-  TextEditingController _resultStrController = TextEditingController();
+  TextEditingController _varStr1Controller;
+  TextEditingController _templateStrController;
+  TextEditingController _resultStrController;
+  ScrollController _scrollController;
+
+  @override
+  void initState() {
+    _varStr1Controller = TextEditingController();
+    _templateStrController = TextEditingController();
+    _resultStrController = TextEditingController();
+    _scrollController = ScrollController();
+    super.initState();
+  }
 
   void _renderResult() {
     String varStr1 = _varStr1Controller.text;
@@ -76,6 +86,11 @@ class _MyHomePageState extends State<MyHomePage> {
           title: Text(widget.title),
         ),
         body: Center(
+            child: Scrollbar(
+          isAlwaysShown: true,
+          controller: _scrollController,
+          thickness: 10,
+          radius: Radius.circular(10.0),
           child: new SingleChildScrollView(
             child: new Column(
               children: <Widget>[
@@ -125,6 +140,6 @@ class _MyHomePageState extends State<MyHomePage> {
               ],
             ),
           ),
-        ));
+        )));
   }
 }
