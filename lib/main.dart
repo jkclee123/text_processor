@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'const.dart' as Const;
+import 'pipelineControllerGroup.dart';
+import 'matchControllerGroup.dart';
+import 'findReplaceControllerGroup.dart';
 
 void main() {
   runApp(MyApp());
@@ -35,6 +38,10 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   TextEditingController _resultTextController;
   String _splitSeperatorStr;
   String _joinSeperatorStr;
+  List<Widget> _piplineWidgetList;
+  List<PipelineControllerGroup> _pipelineControllerGroupList;
+  List<int> _pipelineWidgetIdList;
+  int _pipelineWidgetId;
 
   @override
   void initState() {
@@ -46,6 +53,10 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     _joinSeperatorStr = Const.DEFAULT_DELIMITOR;
     _templateTextController = TextEditingController();
     _resultTextController = TextEditingController();
+    _piplineWidgetList = [];
+    _pipelineControllerGroupList = [];
+    _pipelineWidgetIdList = [];
+    _pipelineWidgetId = 0;
   }
 
   @override
@@ -61,13 +72,15 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
             child: Column(children: <Widget>[
           _topButtonRow(),
           _sourceTextRow(),
-          _startPipelineRow(),
-          _endPipelineRow(),
+          _settingsRow(),
+          _addPipelineButtonRow(),
+          _pipelineColumn(),
           _templateTextRow(),
           _resultTextRow()
         ])));
   }
 
+// Widget Start
   Widget _topButtonRow() {
     return Padding(
         padding: EdgeInsets.all(
@@ -77,8 +90,8 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: <Widget>[
               ButtonTheme(
-                  minWidth: 40,
-                  height: 40,
+                  minWidth: Const.SQUARE_BTN_LENGTH,
+                  height: Const.SQUARE_BTN_LENGTH,
                   child: RaisedButton(
                       color: Colors.orange,
                       onPressed: _resetEverything,
@@ -118,7 +131,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
         ));
   }
 
-  Widget _startPipelineRow() {
+  Widget _settingsRow() {
     return Padding(
       padding: EdgeInsets.all(
           MediaQuery.of(context).size.width * Const.PADDING_EDGEINSETS),
@@ -126,13 +139,37 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: <Widget>[
-            Container(
-                child: DropdownButton(
-              items: Const.DELIMITOR_LIST,
-              hint: Text('Split by'),
-              onChanged: (value) => setState(() => _splitSeperatorStr = value),
-              value: _splitSeperatorStr,
-            )),
+            Row(
+              children: <Widget>[
+                Padding(
+                    padding: EdgeInsets.all(MediaQuery.of(context).size.width *
+                        Const.PADDING_EDGEINSETS),
+                    child:
+                        Text('Split by: ', style: TextStyle(fontSize: 16.0))),
+                Container(
+                    child: DropdownButton(
+                  items: Const.DELIMITOR_LIST,
+                  onChanged: (value) =>
+                      _dropdownOnChangedHandler(Const.DROPDOWN_SPLIT, value),
+                  value: _splitSeperatorStr,
+                )),
+              ],
+            ),
+            Row(
+              children: <Widget>[
+                Padding(
+                    padding: EdgeInsets.all(MediaQuery.of(context).size.width *
+                        Const.PADDING_EDGEINSETS),
+                    child: Text('Join by: ', style: TextStyle(fontSize: 16.0))),
+                Container(
+                    child: DropdownButton(
+                  items: Const.DELIMITOR_LIST,
+                  onChanged: (value) =>
+                      _dropdownOnChangedHandler(Const.DROPDOWN_JOIN, value),
+                  value: _joinSeperatorStr,
+                )),
+              ],
+            ),
             Container(
                 width: 140,
                 height: 40,
@@ -141,27 +178,39 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                     onChanged: _textFieldOnChangedHandler,
                     maxLines: 1,
                     keyboardType: TextInputType.text,
-                    decoration: InputDecoration(prefixText: 'Placeholder: '))),
+                    decoration: InputDecoration(
+                      prefixText: 'Placeholder: ',
+                      errorText: _placeholderController.text.isEmpty
+                          ? 'Placeholder Required'
+                          : null,
+                    ))),
           ]),
     );
   }
 
-  Widget _endPipelineRow() {
+  Widget _addPipelineButtonRow() {
     return Padding(
-      padding: EdgeInsets.all(
-          MediaQuery.of(context).size.width * Const.PADDING_EDGEINSETS),
-      child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: <Widget>[
-            Container(
-                child: DropdownButton(
-              items: Const.DELIMITOR_LIST,
-              onChanged: (value) => setState(() => _joinSeperatorStr = value),
-              value: _joinSeperatorStr,
-            )),
-          ]),
-    );
+        padding: EdgeInsets.all(
+            MediaQuery.of(context).size.width * Const.PADDING_EDGEINSETS),
+        child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: <Widget>[
+              RaisedButton(
+                  onPressed: () => _addPipelineWidget(Const.PIPELINE_OP_MATCH),
+                  child: Text('Match')),
+              RaisedButton(
+                  onPressed: () =>
+                      _addPipelineWidget(Const.PIPELINE_OP_FINDREPLACE),
+                  child: Text('Find & Replace')),
+            ]));
+  }
+
+  Widget _pipelineColumn() {
+    return Padding(
+        padding: EdgeInsets.all(
+            MediaQuery.of(context).size.width * Const.PADDING_EDGEINSETS),
+        child: Column(children: _piplineWidgetList));
   }
 
   Widget _templateTextRow() {
@@ -227,46 +276,201 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
         ));
   }
 
+  Widget _pipelineMatchTemplate(
+      MatchControllerGroup matchControllerGroup, int pipelineWidgetId) {
+    return Padding(
+        padding: EdgeInsets.all(0),
+        child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+              Container(
+                  width: 240,
+                  height: 50,
+                  child: TextField(
+                      controller: matchControllerGroup.patternController,
+                      onChanged: _textFieldOnChangedHandler,
+                      maxLines: 1,
+                      keyboardType: TextInputType.text,
+                      decoration: InputDecoration(
+                        prefixText: 'Match: ',
+                      ))),
+              ButtonTheme(
+                  minWidth: Const.SQUARE_BTN_LENGTH,
+                  height: Const.SQUARE_BTN_LENGTH,
+                  child: RaisedButton(
+                      onPressed: () =>
+                          _removePipelineWidgetHandler(pipelineWidgetId),
+                      color: Colors.redAccent,
+                      child: Icon(Icons.cancel_outlined)))
+            ]));
+  }
+
+  Widget _pipelineFindReplaceTemplate(
+      FindReplaceControllerGroup findReplaceControllerGroup,
+      int pipelineWidgetId) {
+    return Padding(
+        padding: EdgeInsets.all(0),
+        child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+              Container(
+                  width: 240,
+                  height: 50,
+                  child: TextField(
+                      controller: findReplaceControllerGroup.findController,
+                      onChanged: _textFieldOnChangedHandler,
+                      maxLines: 1,
+                      keyboardType: TextInputType.text,
+                      decoration: InputDecoration(
+                        prefixText: 'Find: ',
+                      ))),
+              Container(
+                  width: 240,
+                  height: 50,
+                  child: TextField(
+                      controller: findReplaceControllerGroup.replaceController,
+                      onChanged: _textFieldOnChangedHandler,
+                      maxLines: 1,
+                      keyboardType: TextInputType.text,
+                      decoration: InputDecoration(
+                        prefixText: 'Replace: ',
+                      ))),
+              ButtonTheme(
+                  minWidth: Const.SQUARE_BTN_LENGTH,
+                  height: Const.SQUARE_BTN_LENGTH,
+                  child: RaisedButton(
+                      onPressed: () =>
+                          _removePipelineWidgetHandler(pipelineWidgetId),
+                      color: Colors.redAccent,
+                      child: Icon(Icons.cancel_outlined)))
+            ]));
+  }
+// Widget End
+
+// Function Start
   void _resetEverything() {
     _setTextField(_sourceTextController, '');
-    // _setTextField(_seperatorController, Const.DEFAULT_SEPERATOR);
     _setTextField(_placeholderController, Const.DEFAULT_PLACEHOLDER);
-    // _setTextField(_groupDelimitorController, Const.DEFAULT_GROUPDELIMITOR);
     _setTextField(_templateTextController, '');
     _setTextField(_resultTextController, '');
+    _removeAllPipeline();
   }
 
   void _setTextField(
-      TextEditingController textEditingController, String textStr) {
+      TextEditingController textEditingController, String value) {
     setState(() {
-      textEditingController.text = textStr;
+      textEditingController.text = value;
       textEditingController.value = TextEditingValue(
-        text: textStr,
+        text: value,
         selection: TextSelection.fromPosition(
-          TextPosition(offset: textStr.length),
+          TextPosition(offset: value.length),
         ),
       );
     });
+  }
+
+  void _removeAllPipeline() {
+    List<int> dummyWidgetIdList =
+        _pipelineWidgetIdList.sublist(0, _pipelineWidgetIdList.length);
+    for (int pipelineWidgetId in dummyWidgetIdList) {
+      _removePipelineWidget(pipelineWidgetId);
+    }
+  }
+
+  void _addPipelineWidget(String operationCode) {
+    PipelineControllerGroup pipelineControllerGroup =
+        _getPipelineControllerGroup(operationCode);
+    Widget pipelineWidget =
+        _getPipelineWidgetTemplate(operationCode, pipelineControllerGroup);
+    setState(() => _piplineWidgetList.add(pipelineWidget));
+    _pipelineControllerGroupList.add(pipelineControllerGroup);
+  }
+
+  Widget _getPipelineWidgetTemplate(
+      String operationCode, PipelineControllerGroup pipelineControllerGroup) {
+    Widget pipelineWidget;
+    if (operationCode == Const.PIPELINE_OP_MATCH) {
+      pipelineWidget =
+          _pipelineMatchTemplate(pipelineControllerGroup, _pipelineWidgetId);
+    } else if (operationCode == Const.PIPELINE_OP_FINDREPLACE) {
+      pipelineWidget = _pipelineFindReplaceTemplate(
+          pipelineControllerGroup, _pipelineWidgetId);
+    }
+    _pipelineWidgetIdList.add(_pipelineWidgetId++);
+    return pipelineWidget;
+  }
+
+  PipelineControllerGroup _getPipelineControllerGroup(String operationCode) {
+    if (operationCode == Const.PIPELINE_OP_MATCH) {
+      return _createMatchControllerGroup();
+    } else if (operationCode == Const.PIPELINE_OP_FINDREPLACE) {
+      return __createFindReplaceControllerGroup();
+    } else {
+      return null;
+    }
+  }
+
+  PipelineControllerGroup _createMatchControllerGroup() {
+    MatchControllerGroup matchControllerGroup = MatchControllerGroup();
+    TextEditingController patternController = TextEditingController();
+    matchControllerGroup.patternController = patternController;
+    return matchControllerGroup;
+  }
+
+  PipelineControllerGroup __createFindReplaceControllerGroup() {
+    FindReplaceControllerGroup findReplaceControllerGroup =
+        FindReplaceControllerGroup();
+    TextEditingController findController = TextEditingController();
+    TextEditingController replaceController = TextEditingController();
+    findReplaceControllerGroup.findController = findController;
+    findReplaceControllerGroup.replaceController = replaceController;
+    return findReplaceControllerGroup;
+  }
+
+  void _removePipelineWidget(int pipelineWidgetId) {
+    int rowIndex = _pipelineWidgetIdList.indexOf(pipelineWidgetId);
+    _pipelineWidgetIdList.remove(pipelineWidgetId);
+    _pipelineControllerGroupList.removeAt(rowIndex);
+    setState(() => _piplineWidgetList.removeAt(rowIndex));
   }
 
   void _textFieldOnChangedHandler(String value) {
     _processResult();
   }
 
+  void _dropdownOnChangedHandler(String dropdownId, String value) {
+    if (dropdownId == Const.DROPDOWN_SPLIT) {
+      setState(() => _splitSeperatorStr = value);
+    } else if (dropdownId == Const.DROPDOWN_JOIN) {
+      setState(() => _joinSeperatorStr = value);
+    }
+    _processResult();
+  }
+
+  void _removePipelineWidgetHandler(int pipelineWidgetId) {
+    _removePipelineWidget(pipelineWidgetId);
+    _processResult();
+  }
+
   void _processResult() {
     List<String> sourceTextList = _seperateSoureText();
     List<String> populateStrList = _populateTemplate(sourceTextList);
-    String resultStr = _groupResult(populateStrList);
+    String resultStr = _joinResult(populateStrList);
     _setTextField(_resultTextController, resultStr);
   }
 
   List<String> _seperateSoureText() {
     String sourceTextStr = _sourceTextController.text;
-    return sourceTextStr.split(new RegExp(''));
+    return sourceTextStr.split(new RegExp(_splitSeperatorStr));
   }
 
   List<String> _populateTemplate(List<String> pipelineStrList) {
     String templateStr = _templateTextController.text;
+    if (templateStr.isEmpty) {
+      return pipelineStrList;
+    }
     String placeholderStr = _placeholderController.text;
     List<String> populateStrList = [];
     for (String pipelineStr in pipelineStrList) {
@@ -276,8 +480,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     return populateStrList;
   }
 
-  String _groupResult(List<String> populateStrList) {
-    String groupDelimitor = '';
-    return populateStrList.join(groupDelimitor);
+  String _joinResult(List<String> populateStrList) {
+    return populateStrList.join(_joinSeperatorStr);
   }
 }
