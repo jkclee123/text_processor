@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'const.dart' as Const;
-import 'pipelineControllerGroup.dart';
-import 'matchControllerGroup.dart';
-import 'findReplaceControllerGroup.dart';
+import 'package:text_processor/pipelineGroup.dart';
+import 'package:text_processor/pipelineRowController.dart';
+import 'package:text_processor/matchPipelineRowController.dart';
+import 'package:text_processor/findReplacePipelineRowController.dart';
 
 void main() {
   runApp(MyApp());
@@ -38,10 +39,8 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   TextEditingController _resultTextController;
   String _splitSeperatorStr;
   String _joinSeperatorStr;
-  List<Widget> _piplineWidgetList;
-  List<PipelineControllerGroup> _pipelineControllerGroupList;
-  List<int> _pipelineWidgetIdList;
-  int _pipelineWidgetId;
+  PipelineGroup _matchPipelineGroup;
+  PipelineGroup _findReplacePipelineGroup;
 
   @override
   void initState() {
@@ -53,10 +52,8 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     _joinSeperatorStr = Const.DEFAULT_DELIMITOR;
     _templateTextController = TextEditingController();
     _resultTextController = TextEditingController();
-    _piplineWidgetList = [];
-    _pipelineControllerGroupList = [];
-    _pipelineWidgetIdList = [];
-    _pipelineWidgetId = 0;
+    _matchPipelineGroup = PipelineGroup();
+    _findReplacePipelineGroup = PipelineGroup();
   }
 
   @override
@@ -73,7 +70,6 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
           _topButtonRow(),
           _sourceTextRow(),
           _settingsRow(),
-          _addPipelineButtonRow(),
           _pipelineColumn(),
           _templateTextRow(),
           _resultTextRow()
@@ -188,29 +184,40 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     );
   }
 
-  Widget _addPipelineButtonRow() {
-    return Padding(
-        padding: EdgeInsets.all(
-            MediaQuery.of(context).size.width * Const.PADDING_EDGEINSETS),
-        child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: <Widget>[
-              RaisedButton(
-                  onPressed: () => _addPipelineWidget(Const.PIPELINE_OP_MATCH),
-                  child: Text('Match')),
-              RaisedButton(
-                  onPressed: () =>
-                      _addPipelineWidget(Const.PIPELINE_OP_FINDREPLACE),
-                  child: Text('Find & Replace')),
-            ]));
-  }
-
   Widget _pipelineColumn() {
     return Padding(
         padding: EdgeInsets.all(
             MediaQuery.of(context).size.width * Const.PADDING_EDGEINSETS),
-        child: Column(children: _piplineWidgetList));
+        child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: <Widget>[
+              _matchPipelineColumn(),
+              _findReplacePipelineColumn()
+            ]));
+  }
+
+  Widget _matchPipelineColumn() {
+    return Padding(
+        padding: EdgeInsets.all(
+            MediaQuery.of(context).size.width * Const.PADDING_EDGEINSETS),
+        child: Column(children: <Widget>[
+          RaisedButton(
+              onPressed: () => _addPipelineWidget(
+                  Const.PIPELINE_OP_MATCH, _matchPipelineGroup),
+              child: Text('Match')),
+          Column(children: _matchPipelineGroup.widgetList)
+        ]));
+  }
+
+  Widget _findReplacePipelineColumn() {
+    return Padding(
+        padding: EdgeInsets.all(
+            MediaQuery.of(context).size.width * Const.PADDING_EDGEINSETS),
+        child: Column(children: <Widget>[
+          RaisedButton(onPressed: () => null, child: Text('Find & Replace')),
+          Row(children: _findReplacePipelineGroup.widgetList)
+        ]));
   }
 
   Widget _templateTextRow() {
@@ -277,9 +284,10 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   }
 
   Widget _pipelineMatchTemplate(
-      MatchControllerGroup matchControllerGroup, int pipelineWidgetId) {
+      MatchPipelineRowController rowController, int widgetId) {
     return Padding(
-        padding: EdgeInsets.all(0),
+        padding: EdgeInsets.all(
+            MediaQuery.of(context).size.width * Const.PADDING_EDGEINSETS),
         child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -288,7 +296,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                   width: 240,
                   height: 50,
                   child: TextField(
-                      controller: matchControllerGroup.patternController,
+                      controller: rowController.patternController,
                       onChanged: _textFieldOnChangedHandler,
                       maxLines: 1,
                       keyboardType: TextInputType.text,
@@ -299,16 +307,15 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                   minWidth: Const.SQUARE_BTN_LENGTH,
                   height: Const.SQUARE_BTN_LENGTH,
                   child: RaisedButton(
-                      onPressed: () =>
-                          _removePipelineWidgetHandler(pipelineWidgetId),
+                      onPressed: () => _removePipelineWidgetHandler(
+                          Const.PIPELINE_OP_MATCH, widgetId),
                       color: Colors.redAccent,
                       child: Icon(Icons.cancel_outlined)))
             ]));
   }
 
   Widget _pipelineFindReplaceTemplate(
-      FindReplaceControllerGroup findReplaceControllerGroup,
-      int pipelineWidgetId) {
+      FindReplacePipelineRowController rowController, int widgetId) {
     return Padding(
         padding: EdgeInsets.all(0),
         child: Row(
@@ -319,7 +326,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                   width: 240,
                   height: 50,
                   child: TextField(
-                      controller: findReplaceControllerGroup.findController,
+                      controller: rowController.findController,
                       onChanged: _textFieldOnChangedHandler,
                       maxLines: 1,
                       keyboardType: TextInputType.text,
@@ -330,7 +337,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                   width: 240,
                   height: 50,
                   child: TextField(
-                      controller: findReplaceControllerGroup.replaceController,
+                      controller: rowController.replaceController,
                       onChanged: _textFieldOnChangedHandler,
                       maxLines: 1,
                       keyboardType: TextInputType.text,
@@ -341,8 +348,8 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                   minWidth: Const.SQUARE_BTN_LENGTH,
                   height: Const.SQUARE_BTN_LENGTH,
                   child: RaisedButton(
-                      onPressed: () =>
-                          _removePipelineWidgetHandler(pipelineWidgetId),
+                      onPressed: () => _removePipelineWidgetHandler(
+                          Const.PIPELINE_OP_FINDREPLACE, widgetId),
                       color: Colors.redAccent,
                       child: Icon(Icons.cancel_outlined)))
             ]));
@@ -372,68 +379,79 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   }
 
   void _removeAllPipeline() {
-    List<int> dummyWidgetIdList =
-        _pipelineWidgetIdList.sublist(0, _pipelineWidgetIdList.length);
-    for (int pipelineWidgetId in dummyWidgetIdList) {
-      _removePipelineWidget(pipelineWidgetId);
-    }
+    // List<int> dummyMatchWidgetIdList = _matchPipelineWidgetIdList.sublist(
+    //     0, _matchPipelineWidgetIdList.length);
+    // for (int pipelineWidgetId in dummyMatchWidgetIdList) {
+    //   _removePipelineWidget(pipelineWidgetId);
+    // }
   }
 
-  void _addPipelineWidget(String operationCode) {
-    PipelineControllerGroup pipelineControllerGroup =
-        _getPipelineControllerGroup(operationCode);
-    Widget pipelineWidget =
-        _getPipelineWidgetTemplate(operationCode, pipelineControllerGroup);
-    setState(() => _piplineWidgetList.add(pipelineWidget));
-    _pipelineControllerGroupList.add(pipelineControllerGroup);
+  void _addPipelineWidget(String operationCode, PipelineGroup pipelineGroup) {
+    PipelineRowController pipelineRowController =
+        _getpipelineRowController(operationCode);
+    Widget pipelineWidget = _getPipelineWidgetTemplate(
+        operationCode, pipelineGroup, pipelineRowController);
+    pipelineGroup.rowControllerList.add(pipelineRowController);
+    setState(() => pipelineGroup.widgetList.add(pipelineWidget));
   }
 
-  Widget _getPipelineWidgetTemplate(
-      String operationCode, PipelineControllerGroup pipelineControllerGroup) {
-    Widget pipelineWidget;
-    if (operationCode == Const.PIPELINE_OP_MATCH) {
-      pipelineWidget =
-          _pipelineMatchTemplate(pipelineControllerGroup, _pipelineWidgetId);
-    } else if (operationCode == Const.PIPELINE_OP_FINDREPLACE) {
-      pipelineWidget = _pipelineFindReplaceTemplate(
-          pipelineControllerGroup, _pipelineWidgetId);
-    }
-    _pipelineWidgetIdList.add(_pipelineWidgetId++);
-    return pipelineWidget;
-  }
-
-  PipelineControllerGroup _getPipelineControllerGroup(String operationCode) {
+  PipelineRowController _getpipelineRowController(String operationCode) {
     if (operationCode == Const.PIPELINE_OP_MATCH) {
       return _createMatchControllerGroup();
     } else if (operationCode == Const.PIPELINE_OP_FINDREPLACE) {
-      return __createFindReplaceControllerGroup();
+      return __createFindReplacePipelineRowController();
     } else {
       return null;
     }
   }
 
-  PipelineControllerGroup _createMatchControllerGroup() {
-    MatchControllerGroup matchControllerGroup = MatchControllerGroup();
+  PipelineRowController _createMatchControllerGroup() {
+    MatchPipelineRowController matchPipelineRowController =
+        MatchPipelineRowController();
     TextEditingController patternController = TextEditingController();
-    matchControllerGroup.patternController = patternController;
-    return matchControllerGroup;
+    matchPipelineRowController.patternController = patternController;
+    return matchPipelineRowController;
   }
 
-  PipelineControllerGroup __createFindReplaceControllerGroup() {
-    FindReplaceControllerGroup findReplaceControllerGroup =
-        FindReplaceControllerGroup();
+  PipelineRowController __createFindReplacePipelineRowController() {
+    FindReplacePipelineRowController findReplacePipelineRowController =
+        FindReplacePipelineRowController();
     TextEditingController findController = TextEditingController();
     TextEditingController replaceController = TextEditingController();
-    findReplaceControllerGroup.findController = findController;
-    findReplaceControllerGroup.replaceController = replaceController;
-    return findReplaceControllerGroup;
+    findReplacePipelineRowController.findController = findController;
+    findReplacePipelineRowController.replaceController = replaceController;
+    return findReplacePipelineRowController;
   }
 
-  void _removePipelineWidget(int pipelineWidgetId) {
-    int rowIndex = _pipelineWidgetIdList.indexOf(pipelineWidgetId);
-    _pipelineWidgetIdList.remove(pipelineWidgetId);
-    _pipelineControllerGroupList.removeAt(rowIndex);
-    setState(() => _piplineWidgetList.removeAt(rowIndex));
+  Widget _getPipelineWidgetTemplate(
+      String operationCode,
+      PipelineGroup pipelineGroup,
+      PipelineRowController pipelineRowController) {
+    Widget pipelineWidget;
+    if (operationCode == Const.PIPELINE_OP_MATCH) {
+      pipelineWidget = _pipelineMatchTemplate(
+          pipelineRowController, pipelineGroup.widgetIdCounter);
+    } else if (operationCode == Const.PIPELINE_OP_FINDREPLACE) {
+      pipelineWidget = _pipelineFindReplaceTemplate(
+          pipelineRowController, pipelineGroup.widgetIdCounter);
+    }
+    pipelineGroup.widgetIdList.add(pipelineGroup.widgetIdCounter++);
+    return pipelineWidget;
+  }
+
+  void _removePipelineWidget(String operationCode, int pipelineWidgetId) {
+    PipelineGroup pipelineGroup;
+    if (operationCode == Const.PIPELINE_OP_MATCH) {
+      pipelineGroup = _matchPipelineGroup;
+    } else if (operationCode == Const.PIPELINE_OP_FINDREPLACE) {
+      pipelineGroup = _findReplacePipelineGroup;
+    } else {
+      return;
+    }
+    int rowIndex = pipelineGroup.widgetIdList.indexOf(pipelineWidgetId);
+    pipelineGroup.widgetIdList.remove(pipelineWidgetId);
+    pipelineGroup.rowControllerList.removeAt(rowIndex);
+    setState(() => pipelineGroup.widgetList.removeAt(rowIndex));
   }
 
   void _textFieldOnChangedHandler(String value) {
@@ -449,8 +467,9 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     _processResult();
   }
 
-  void _removePipelineWidgetHandler(int pipelineWidgetId) {
-    _removePipelineWidget(pipelineWidgetId);
+  void _removePipelineWidgetHandler(
+      String operationCode, int pipelineWidgetId) {
+    _removePipelineWidget(operationCode, pipelineWidgetId);
     _processResult();
   }
 

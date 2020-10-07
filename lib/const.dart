@@ -25,13 +25,13 @@ const List<DropdownMenuItem<String>> DELIMITOR_LIST = [
   DropdownMenuItem(
     value: ", ",
     child: Text(
-      "Comma Space",
+      "Comma",
     ),
   ),
   DropdownMenuItem(
-    value: ",",
+    value: " ",
     child: Text(
-      "Comma",
+      "Space",
     ),
   ),
 ];
