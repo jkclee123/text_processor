@@ -116,7 +116,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                                   Const.CARD_EDGEINSETS),
                           child: TextField(
                             controller: _sourceTextController,
-                            onChanged: _textFieldOnChangedHandler,
+                            onChanged: (value) => _processResult(),
                             maxLines: null,
                             keyboardType: TextInputType.multiline,
                             decoration: InputDecoration.collapsed(
@@ -145,8 +145,10 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                 Container(
                     child: DropdownButton(
                   items: Const.DELIMITOR_LIST,
-                  onChanged: (value) =>
-                      _dropdownOnChangedHandler(Const.DROPDOWN_SPLIT, value),
+                  onChanged: (value) {
+                    setState(() => _splitSeperatorStr = value);
+                    _processResult();
+                  },
                   value: _splitSeperatorStr,
                 )),
               ],
@@ -160,8 +162,10 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                 Container(
                     child: DropdownButton(
                   items: Const.DELIMITOR_LIST,
-                  onChanged: (value) =>
-                      _dropdownOnChangedHandler(Const.DROPDOWN_JOIN, value),
+                  onChanged: (value) {
+                    setState(() => _joinSeperatorStr = value);
+                    _processResult();
+                  },
                   value: _joinSeperatorStr,
                 )),
               ],
@@ -171,7 +175,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                 height: 40,
                 child: TextField(
                     controller: _placeholderController,
-                    onChanged: _textFieldOnChangedHandler,
+                    onChanged: (value) => _processResult(),
                     maxLines: 1,
                     keyboardType: TextInputType.text,
                     decoration: InputDecoration(
@@ -201,22 +205,26 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     return Padding(
         padding: EdgeInsets.all(
             MediaQuery.of(context).size.width * Const.PADDING_EDGEINSETS),
-        child: Column(children: <Widget>[
-          RaisedButton(
-              onPressed: () => _addPipelineWidget(
-                  Const.PIPELINE_OP_MATCH, _matchPipelineGroup),
-              child: Text('Match')),
-          Column(children: _matchPipelineGroup.widgetList)
-        ]));
+        child: Container(
+            width: MediaQuery.of(context).size.width * 0.45,
+            child: Column(children: <Widget>[
+              RaisedButton(
+                  onPressed: () => _addPipelineWidget(
+                      Const.PIPELINE_OP_MATCH, _matchPipelineGroup),
+                  child: Text('Match')),
+              Column(children: _matchPipelineGroup.widgetList)
+            ])));
   }
 
   Widget _findReplacePipelineColumn() {
-    return Padding(
-        padding: EdgeInsets.all(
-            MediaQuery.of(context).size.width * Const.PADDING_EDGEINSETS),
+    return Container(
+        width: MediaQuery.of(context).size.width * 0.45,
         child: Column(children: <Widget>[
-          RaisedButton(onPressed: () => null, child: Text('Find & Replace')),
-          Row(children: _findReplacePipelineGroup.widgetList)
+          RaisedButton(
+              onPressed: () => _addPipelineWidget(
+                  Const.PIPELINE_OP_FINDREPLACE, _findReplacePipelineGroup),
+              child: Text('Find & Replace')),
+          Column(children: _findReplacePipelineGroup.widgetList)
         ]));
   }
 
@@ -240,7 +248,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                                   Const.CARD_EDGEINSETS),
                           child: TextField(
                             controller: _templateTextController,
-                            onChanged: _textFieldOnChangedHandler,
+                            onChanged: (value) => _processResult(),
                             maxLines: null,
                             keyboardType: TextInputType.multiline,
                             decoration:
@@ -285,33 +293,56 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
 
   Widget _pipelineMatchTemplate(
       MatchPipelineRowController rowController, int widgetId) {
-    return Padding(
-        padding: EdgeInsets.all(
-            MediaQuery.of(context).size.width * Const.PADDING_EDGEINSETS),
-        child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: <Widget>[
-              Container(
-                  width: 240,
-                  height: 50,
-                  child: TextField(
-                      controller: rowController.patternController,
-                      onChanged: _textFieldOnChangedHandler,
-                      maxLines: 1,
-                      keyboardType: TextInputType.text,
-                      decoration: InputDecoration(
-                        prefixText: 'Match: ',
-                      ))),
-              ButtonTheme(
-                  minWidth: Const.SQUARE_BTN_LENGTH,
-                  height: Const.SQUARE_BTN_LENGTH,
-                  child: RaisedButton(
-                      onPressed: () => _removePipelineWidgetHandler(
-                          Const.PIPELINE_OP_MATCH, widgetId),
-                      color: Colors.redAccent,
-                      child: Icon(Icons.cancel_outlined)))
-            ]));
+    return StatefulBuilder(
+        builder: (BuildContext context, StateSetter setState) {
+      return Padding(
+          padding: EdgeInsets.all(
+              MediaQuery.of(context).size.width * Const.PADDING_EDGEINSETS),
+          child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: <Widget>[
+                Padding(
+                    padding: EdgeInsets.all(MediaQuery.of(context).size.width *
+                        Const.PADDING_EDGEINSETS),
+                    child: Column(children: [
+                      Text('Contains'),
+                      Container(
+                        child: Checkbox(
+                            onChanged: (value) {
+                              setState(() => rowController.contains = value);
+                              _processResult();
+                            },
+                            value: rowController.contains),
+                      )
+                    ])),
+                Padding(
+                    padding: EdgeInsets.all(MediaQuery.of(context).size.width *
+                        Const.PADDING_EDGEINSETS),
+                    child: Container(
+                        width: 240,
+                        height: 50,
+                        child: TextField(
+                            controller: rowController.patternController,
+                            onChanged: (value) => _processResult(),
+                            maxLines: 1,
+                            keyboardType: TextInputType.text,
+                            decoration: InputDecoration(
+                              prefixText: 'Match: ',
+                            )))),
+                Padding(
+                    padding: EdgeInsets.all(MediaQuery.of(context).size.width *
+                        Const.PADDING_EDGEINSETS),
+                    child: ButtonTheme(
+                        minWidth: Const.SQUARE_BTN_LENGTH,
+                        height: Const.SQUARE_BTN_LENGTH,
+                        child: RaisedButton(
+                            onPressed: () => _removePipelineWidgetHandler(
+                                Const.PIPELINE_OP_MATCH, widgetId),
+                            color: Colors.redAccent,
+                            child: Icon(Icons.cancel_outlined))))
+              ]));
+    });
   }
 
   Widget _pipelineFindReplaceTemplate(
@@ -322,36 +353,45 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
-              Container(
-                  width: 240,
-                  height: 50,
-                  child: TextField(
-                      controller: rowController.findController,
-                      onChanged: _textFieldOnChangedHandler,
-                      maxLines: 1,
-                      keyboardType: TextInputType.text,
-                      decoration: InputDecoration(
-                        prefixText: 'Find: ',
-                      ))),
-              Container(
-                  width: 240,
-                  height: 50,
-                  child: TextField(
-                      controller: rowController.replaceController,
-                      onChanged: _textFieldOnChangedHandler,
-                      maxLines: 1,
-                      keyboardType: TextInputType.text,
-                      decoration: InputDecoration(
-                        prefixText: 'Replace: ',
-                      ))),
-              ButtonTheme(
-                  minWidth: Const.SQUARE_BTN_LENGTH,
-                  height: Const.SQUARE_BTN_LENGTH,
-                  child: RaisedButton(
-                      onPressed: () => _removePipelineWidgetHandler(
-                          Const.PIPELINE_OP_FINDREPLACE, widgetId),
-                      color: Colors.redAccent,
-                      child: Icon(Icons.cancel_outlined)))
+              Padding(
+                  padding: EdgeInsets.all(MediaQuery.of(context).size.width *
+                      Const.PADDING_EDGEINSETS),
+                  child: Container(
+                      width: 240,
+                      height: 50,
+                      child: TextField(
+                          controller: rowController.findController,
+                          onChanged: (value) => _processResult(),
+                          maxLines: 1,
+                          keyboardType: TextInputType.text,
+                          decoration: InputDecoration(
+                            prefixText: 'Find: ',
+                          )))),
+              Padding(
+                  padding: EdgeInsets.all(MediaQuery.of(context).size.width *
+                      Const.PADDING_EDGEINSETS),
+                  child: Container(
+                      width: 240,
+                      height: 50,
+                      child: TextField(
+                          controller: rowController.replaceController,
+                          onChanged: (value) => _processResult(),
+                          maxLines: 1,
+                          keyboardType: TextInputType.text,
+                          decoration: InputDecoration(
+                            prefixText: 'Replace: ',
+                          )))),
+              Padding(
+                  padding: EdgeInsets.all(MediaQuery.of(context).size.width *
+                      Const.PADDING_EDGEINSETS),
+                  child: ButtonTheme(
+                      minWidth: Const.SQUARE_BTN_LENGTH,
+                      height: Const.SQUARE_BTN_LENGTH,
+                      child: RaisedButton(
+                          onPressed: () => _removePipelineWidgetHandler(
+                              Const.PIPELINE_OP_FINDREPLACE, widgetId),
+                          color: Colors.redAccent,
+                          child: Icon(Icons.cancel_outlined))))
             ]));
   }
 // Widget End
@@ -397,30 +437,12 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
 
   PipelineRowController _getpipelineRowController(String operationCode) {
     if (operationCode == Const.PIPELINE_OP_MATCH) {
-      return _createMatchControllerGroup();
+      return MatchPipelineRowController();
     } else if (operationCode == Const.PIPELINE_OP_FINDREPLACE) {
-      return __createFindReplacePipelineRowController();
+      return FindReplacePipelineRowController();
     } else {
       return null;
     }
-  }
-
-  PipelineRowController _createMatchControllerGroup() {
-    MatchPipelineRowController matchPipelineRowController =
-        MatchPipelineRowController();
-    TextEditingController patternController = TextEditingController();
-    matchPipelineRowController.patternController = patternController;
-    return matchPipelineRowController;
-  }
-
-  PipelineRowController __createFindReplacePipelineRowController() {
-    FindReplacePipelineRowController findReplacePipelineRowController =
-        FindReplacePipelineRowController();
-    TextEditingController findController = TextEditingController();
-    TextEditingController replaceController = TextEditingController();
-    findReplacePipelineRowController.findController = findController;
-    findReplacePipelineRowController.replaceController = replaceController;
-    return findReplacePipelineRowController;
   }
 
   Widget _getPipelineWidgetTemplate(
@@ -452,19 +474,6 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     pipelineGroup.widgetIdList.remove(pipelineWidgetId);
     pipelineGroup.rowControllerList.removeAt(rowIndex);
     setState(() => pipelineGroup.widgetList.removeAt(rowIndex));
-  }
-
-  void _textFieldOnChangedHandler(String value) {
-    _processResult();
-  }
-
-  void _dropdownOnChangedHandler(String dropdownId, String value) {
-    if (dropdownId == Const.DROPDOWN_SPLIT) {
-      setState(() => _splitSeperatorStr = value);
-    } else if (dropdownId == Const.DROPDOWN_JOIN) {
-      setState(() => _joinSeperatorStr = value);
-    }
-    _processResult();
   }
 
   void _removePipelineWidgetHandler(
