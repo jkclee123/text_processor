@@ -79,8 +79,8 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
 // Widget Start
   Widget _topButtonRow() {
     return Padding(
-        padding: EdgeInsets.all(
-            MediaQuery.of(context).size.width * Const.PADDING_EDGEINSETS),
+        padding: EdgeInsets.only(
+            top: MediaQuery.of(context).size.width * Const.PADDING_EDGEINSETS),
         child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -97,34 +97,26 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
 
   Widget _sourceTextRow() {
     return Padding(
-        padding: EdgeInsets.all(0),
-        child: Row(
-          children: <Widget>[
-            Padding(
-                padding: EdgeInsets.all(MediaQuery.of(context).size.width *
-                    Const.PADDING_EDGEINSETS),
-                child: Container(
-                    width: MediaQuery.of(context).size.width *
-                        Const.TEXTFIELD_WIDTH,
-                    height: MediaQuery.of(context).size.height *
-                        Const.TEXTFIELD_HEIGHT,
-                    child: Card(
-                        color: Colors.grey[400],
-                        child: Padding(
-                          padding: EdgeInsets.all(
-                              MediaQuery.of(context).size.width *
-                                  Const.CARD_EDGEINSETS),
-                          child: TextField(
-                            controller: _sourceTextController,
-                            onChanged: (value) => _processResult(),
-                            maxLines: null,
-                            keyboardType: TextInputType.multiline,
-                            decoration: InputDecoration.collapsed(
-                                hintText: "Source Text"),
-                          ),
-                        )))),
-          ],
-        ));
+      padding: EdgeInsets.all(
+          MediaQuery.of(context).size.width * Const.PADDING_EDGEINSETS),
+      child: Container(
+          constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.5),
+          child: Card(
+              color: Colors.grey[400],
+              child: Padding(
+                padding: EdgeInsets.all(
+                    MediaQuery.of(context).size.width * Const.CARD_EDGEINSETS),
+                child: TextField(
+                  controller: _sourceTextController,
+                  onChanged: (value) => _processResult(),
+                  maxLines: null,
+                  keyboardType: TextInputType.multiline,
+                  decoration:
+                      InputDecoration.collapsed(hintText: "Source Text"),
+                ),
+              ))),
+    );
   }
 
   Widget _settingsRow() {
@@ -230,65 +222,49 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
 
   Widget _templateTextRow() {
     return Padding(
-        padding: EdgeInsets.all(0),
-        child: Row(
-          children: <Widget>[
-            Padding(
-                padding: EdgeInsets.all(MediaQuery.of(context).size.width *
-                    Const.PADDING_EDGEINSETS),
-                child: Container(
-                    width: MediaQuery.of(context).size.width *
-                        Const.TEXTFIELD_WIDTH,
-                    height: MediaQuery.of(context).size.height * 0.07,
-                    child: Card(
-                        color: Colors.grey[400],
-                        child: Padding(
-                          padding: EdgeInsets.all(
-                              MediaQuery.of(context).size.width *
-                                  Const.CARD_EDGEINSETS),
-                          child: TextField(
-                            controller: _templateTextController,
-                            onChanged: (value) => _processResult(),
-                            maxLines: null,
-                            keyboardType: TextInputType.multiline,
-                            decoration:
-                                InputDecoration.collapsed(hintText: 'Template'),
-                          ),
-                        )))),
-          ],
-        ));
+      padding: EdgeInsets.all(
+          MediaQuery.of(context).size.width * Const.PADDING_EDGEINSETS),
+      child: Container(
+          constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.5),
+          child: Card(
+              color: Colors.grey[400],
+              child: Padding(
+                padding: EdgeInsets.all(
+                    MediaQuery.of(context).size.width * Const.CARD_EDGEINSETS),
+                child: TextField(
+                  controller: _templateTextController,
+                  onChanged: (value) => _processResult(),
+                  maxLines: null,
+                  keyboardType: TextInputType.multiline,
+                  decoration: InputDecoration.collapsed(hintText: "Template"),
+                ),
+              ))),
+    );
   }
 
   Widget _resultTextRow() {
     return Padding(
-        padding: EdgeInsets.all(0),
-        child: Row(
-          children: <Widget>[
-            Padding(
-                padding: EdgeInsets.all(MediaQuery.of(context).size.width *
-                    Const.PADDING_EDGEINSETS),
-                child: Container(
-                    width: MediaQuery.of(context).size.width *
-                        Const.TEXTFIELD_WIDTH,
-                    height: MediaQuery.of(context).size.height *
-                        Const.TEXTFIELD_HEIGHT,
-                    child: Card(
-                        color: Colors.grey[600],
-                        child: Padding(
-                          padding: EdgeInsets.all(
-                              MediaQuery.of(context).size.width *
-                                  Const.CARD_EDGEINSETS),
-                          child: TextField(
-                            controller: _resultTextController,
-                            readOnly: true,
-                            maxLines: null,
-                            keyboardType: TextInputType.multiline,
-                            decoration: InputDecoration.collapsed(
-                                hintText: 'Result Text'),
-                          ),
-                        )))),
-          ],
-        ));
+      padding: EdgeInsets.all(
+          MediaQuery.of(context).size.width * Const.PADDING_EDGEINSETS),
+      child: Container(
+          constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.5),
+          child: Card(
+              color: Colors.grey[600],
+              child: Padding(
+                padding: EdgeInsets.all(
+                    MediaQuery.of(context).size.width * Const.CARD_EDGEINSETS),
+                child: TextField(
+                  controller: _resultTextController,
+                  readOnly: true,
+                  maxLines: null,
+                  keyboardType: TextInputType.multiline,
+                  decoration:
+                      InputDecoration.collapsed(hintText: "Result Text"),
+                ),
+              ))),
+    );
   }
 
   Widget _pipelineMatchTemplate(
@@ -310,10 +286,27 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                       Container(
                         child: Checkbox(
                             onChanged: (value) {
-                              setState(() => rowController.contains = value);
+                              setState(() => rowController.contains =
+                                  rowController.matchedText ? true : value);
                               _processResult();
                             },
                             value: rowController.contains),
+                      )
+                    ])),
+                Padding(
+                    padding: EdgeInsets.all(MediaQuery.of(context).size.width *
+                        Const.PADDING_EDGEINSETS),
+                    child: Column(children: [
+                      Text('Matched Text'),
+                      Container(
+                        child: Checkbox(
+                            onChanged: (value) {
+                              setState(() => rowController.contains =
+                                  value ? true : rowController.contains);
+                              setState(() => rowController.matchedText = value);
+                              _processResult();
+                            },
+                            value: rowController.matchedText),
                       )
                     ])),
                 Padding(
@@ -483,15 +476,31 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   }
 
   void _processResult() {
-    List<String> sourceTextList = _seperateSoureText();
-    List<String> populateStrList = _populateTemplate(sourceTextList);
+    List<String> sourceStrList = _seperateSoureText();
+    List<String> matchStrList = _matchSourceText(sourceStrList);
+    List<String> populateStrList = _populateTemplate(matchStrList);
     String resultStr = _joinResult(populateStrList);
     _setTextField(_resultTextController, resultStr);
   }
 
   List<String> _seperateSoureText() {
-    String sourceTextStr = _sourceTextController.text;
-    return sourceTextStr.split(new RegExp(_splitSeperatorStr));
+    String sourceStr = _sourceTextController.text;
+    return sourceStr.split(new RegExp(_splitSeperatorStr));
+  }
+
+  List<String> _matchSourceText(List<String> sourceStrList) {
+    List<MatchPipelineRowController> rowControllerList =
+        _matchPipelineGroup.rowControllerList;
+    for (MatchPipelineRowController rowController in rowControllerList) {
+      List<String> matchStrList = [];
+      for (String sourceStr in sourceStrList) {
+        if (sourceStr
+                .contains(new RegExp(rowController.patternController.text)) ==
+            rowController.contains) {
+          // sourceStr.allMatches(string)
+        }
+      }
+    }
   }
 
   List<String> _populateTemplate(List<String> pipelineStrList) {
@@ -502,8 +511,8 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     String placeholderStr = _placeholderController.text;
     List<String> populateStrList = [];
     for (String pipelineStr in pipelineStrList) {
-      String resultStr = templateStr.replaceAll(placeholderStr, pipelineStr);
-      populateStrList.add(resultStr);
+      String populateStr = templateStr.replaceAll(placeholderStr, pipelineStr);
+      populateStrList.add(populateStr);
     }
     return populateStrList;
   }
