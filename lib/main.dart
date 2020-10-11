@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:text_processor/findReplacePipelineGroup.dart';
+import 'package:text_processor/matchPipelineGroup.dart';
 import 'const.dart' as Const;
 import 'package:text_processor/pipelineGroup.dart';
 import 'package:text_processor/pipelineRowController.dart';
@@ -39,8 +42,8 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   TextEditingController _resultTextController;
   String _splitSeperatorStr;
   String _joinSeperatorStr;
-  PipelineGroup _matchPipelineGroup;
-  PipelineGroup _findReplacePipelineGroup;
+  MatchPipelineGroup _matchPipelineGroup;
+  FindReplacePipelineGroup _findReplacePipelineGroup;
 
   @override
   void initState() {
@@ -52,8 +55,8 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     _joinSeperatorStr = Const.DEFAULT_DELIMITOR;
     _templateTextController = TextEditingController();
     _resultTextController = TextEditingController();
-    _matchPipelineGroup = PipelineGroup();
-    _findReplacePipelineGroup = PipelineGroup();
+    _matchPipelineGroup = MatchPipelineGroup();
+    _findReplacePipelineGroup = FindReplacePipelineGroup();
   }
 
   @override
@@ -267,7 +270,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     );
   }
 
-  Widget _pipelineMatchTemplate(
+  Widget _matchPipelineTemplate(
       MatchPipelineRowController rowController, int widgetId) {
     return StatefulBuilder(
         builder: (BuildContext context, StateSetter setState) {
@@ -275,45 +278,91 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
           padding: EdgeInsets.all(
               MediaQuery.of(context).size.width * Const.PADDING_EDGEINSETS),
           child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
-                Padding(
-                    padding: EdgeInsets.all(MediaQuery.of(context).size.width *
-                        Const.PADDING_EDGEINSETS),
-                    child: Column(children: [
-                      Text('Contains'),
-                      Container(
-                        child: Checkbox(
-                            onChanged: (value) {
-                              setState(() => rowController.contains =
-                                  rowController.matchedText ? true : value);
-                              _processResult();
-                            },
-                            value: rowController.contains),
-                      )
-                    ])),
-                Padding(
-                    padding: EdgeInsets.all(MediaQuery.of(context).size.width *
-                        Const.PADDING_EDGEINSETS),
-                    child: Column(children: [
-                      Text('Matched Text'),
-                      Container(
-                        child: Checkbox(
-                            onChanged: (value) {
-                              setState(() => rowController.contains =
-                                  value ? true : rowController.contains);
-                              setState(() => rowController.matchedText = value);
-                              _processResult();
-                            },
-                            value: rowController.matchedText),
-                      )
-                    ])),
+                Container(
+                  child: Row(
+                    children: [
+                      Padding(
+                          padding: EdgeInsets.all(
+                              MediaQuery.of(context).size.width *
+                                  Const.PADDING_EDGEINSETS),
+                          child: Column(children: [
+                            Text('Contains'),
+                            Container(
+                              child: Checkbox(
+                                  onChanged: (value) {
+                                    setState(() => rowController.contains =
+                                        rowController.matchedText
+                                            ? true
+                                            : value);
+                                    _processResult();
+                                  },
+                                  value: rowController.contains),
+                            )
+                          ])),
+                      Padding(
+                          padding: EdgeInsets.all(
+                              MediaQuery.of(context).size.width *
+                                  Const.PADDING_EDGEINSETS),
+                          child: Column(children: [
+                            Text('Output'),
+                            Container(
+                              child: Checkbox(
+                                  onChanged: (value) {
+                                    setState(() => rowController.contains =
+                                        value ? true : rowController.contains);
+                                    setState(() =>
+                                        rowController.matchedText = value);
+                                    _processResult();
+                                  },
+                                  value: rowController.matchedText),
+                            )
+                          ])),
+                      Padding(
+                          padding: EdgeInsets.all(
+                              MediaQuery.of(context).size.width *
+                                  Const.PADDING_EDGEINSETS),
+                          child: Column(children: [
+                            Text('Aa'),
+                            Container(
+                              child: Checkbox(
+                                  onChanged: (value) {
+                                    setState(() =>
+                                        rowController.caseSensitive = value);
+                                    _processResult();
+                                  },
+                                  value: rowController.caseSensitive),
+                            )
+                          ])),
+                    ],
+                  ),
+                ),
                 Padding(
                     padding: EdgeInsets.all(MediaQuery.of(context).size.width *
                         Const.PADDING_EDGEINSETS),
                     child: Container(
-                        width: 240,
+                        constraints: BoxConstraints(
+                            maxWidth: MediaQuery.of(context).size.width * 0.1),
+                        height: 50,
+                        child: TextField(
+                            controller: rowController.matchGroupController,
+                            onChanged: (value) => _processResult(),
+                            maxLines: 1,
+                            keyboardType: TextInputType.number,
+                            inputFormatters: <TextInputFormatter>[
+                              FilteringTextInputFormatter.digitsOnly
+                            ],
+                            decoration: InputDecoration(
+                              prefixText: 'Group: ',
+                            )))),
+                Padding(
+                    padding: EdgeInsets.all(MediaQuery.of(context).size.width *
+                        Const.PADDING_EDGEINSETS),
+                    child: Container(
+                        constraints: BoxConstraints(
+                            maxWidth: MediaQuery.of(context).size.width * 0.1),
                         height: 50,
                         child: TextField(
                             controller: rowController.patternController,
@@ -444,7 +493,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
       PipelineRowController pipelineRowController) {
     Widget pipelineWidget;
     if (operationCode == Const.PIPELINE_OP_MATCH) {
-      pipelineWidget = _pipelineMatchTemplate(
+      pipelineWidget = _matchPipelineTemplate(
           pipelineRowController, pipelineGroup.widgetIdCounter);
     } else if (operationCode == Const.PIPELINE_OP_FINDREPLACE) {
       pipelineWidget = _pipelineFindReplaceTemplate(
@@ -476,11 +525,15 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   }
 
   void _processResult() {
-    List<String> sourceStrList = _seperateSoureText();
-    List<String> matchStrList = _matchSourceText(sourceStrList);
-    List<String> populateStrList = _populateTemplate(matchStrList);
-    String resultStr = _joinResult(populateStrList);
-    _setTextField(_resultTextController, resultStr);
+    try {
+      List<String> sourceStrList = _seperateSoureText();
+      List<String> matchStrList = _matchSourceText(sourceStrList);
+      List<String> populateStrList = _populateTemplate(matchStrList);
+      String resultStr = _joinResult(populateStrList);
+      _setTextField(_resultTextController, resultStr);
+    } catch (e) {
+      print(e);
+    }
   }
 
   List<String> _seperateSoureText() {
@@ -491,16 +544,28 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   List<String> _matchSourceText(List<String> sourceStrList) {
     List<MatchPipelineRowController> rowControllerList =
         _matchPipelineGroup.rowControllerList;
+    List<String> workingStrList = sourceStrList;
     for (MatchPipelineRowController rowController in rowControllerList) {
       List<String> matchStrList = [];
-      for (String sourceStr in sourceStrList) {
-        if (sourceStr
-                .contains(new RegExp(rowController.patternController.text)) ==
-            rowController.contains) {
-          // sourceStr.allMatches(string)
+      for (String sourceStr in workingStrList) {
+        RegExp regExp = new RegExp(rowController.patternController.text,
+            caseSensitive: rowController.caseSensitive);
+        String matchStr = "";
+        if (regExp.hasMatch(sourceStr) == rowController.contains) {
+          if (rowController.matchedText) {
+            Iterable<RegExpMatch> matches = regExp.allMatches(sourceStr);
+            RegExpMatch match = matches.elementAt(0);
+            int matchGroup = int.parse(rowController.matchGroupController.text);
+            matchStr = match.group(matchGroup);
+          } else {
+            matchStr = sourceStr;
+          }
+          matchStrList.add(matchStr);
         }
       }
+      workingStrList = matchStrList;
     }
+    return workingStrList;
   }
 
   List<String> _populateTemplate(List<String> pipelineStrList) {

@@ -4,11 +4,15 @@ import 'package:text_processor/pipelineRowController.dart';
 class MatchPipelineRowController extends PipelineRowController {
   bool contains;
   bool matchedText;
+  bool caseSensitive;
+  TextEditingController matchGroupController;
   TextEditingController patternController;
 
   MatchPipelineRowController() {
     this.contains = true;
     this.matchedText = false;
+    this.caseSensitive = false;
+    this.matchGroupController = TextEditingController(text: "0");
     this.patternController = TextEditingController();
   }
 
