@@ -56,8 +56,8 @@ class _MainPageState extends State<MainPage> {
         return _mainWidget();
       }),
       floatingActionButton: FloatingActionButton(
-          onPressed: () => Clipboard.setData(
-              new ClipboardData(text: _resultStrController.text)),
+          onPressed: () =>
+              Clipboard.setData(ClipboardData(text: _resultStrController.text)),
           elevation: StyleConfig.elevation,
           child: Icon(Icons.copy)),
     );
@@ -451,7 +451,7 @@ class _MainPageState extends State<MainPage> {
   }
 
   List<String> _separateStr(String sourceStr) {
-    return sourceStr.split(new RegExp(_splitSeparatorController.text));
+    return sourceStr.split(RegExp(_splitSeparatorController.text));
   }
 
   List<String> _processPipeline(List<String> separatedStrList) {
@@ -471,7 +471,7 @@ class _MainPageState extends State<MainPage> {
       MatchControllerGroup controllerGroup, List<String> processStrList) {
     List<String> pipelinedStrList = <String>[];
     for (String processStr in processStrList) {
-      RegExp regExp = new RegExp(controllerGroup.patternController.text,
+      RegExp regExp = RegExp(controllerGroup.patternController.text,
           caseSensitive: controllerGroup.caseSensitive);
       if (regExp.hasMatch(processStr) == controllerGroup.contains) {
         pipelinedStrList.add(processStr);
@@ -486,7 +486,7 @@ class _MainPageState extends State<MainPage> {
     for (String processStr in processStrList) {
       String findStr = controllerGroup.findController.text;
       String replaceStr = controllerGroup.replaceController.text;
-      RegExp findRegExp = new RegExp(findStr, caseSensitive: true);
+      RegExp findRegExp = RegExp(findStr, caseSensitive: true);
       String resultStr = processStr.replaceAll(findRegExp, replaceStr);
       pipelinedStrList.add(resultStr);
     }
