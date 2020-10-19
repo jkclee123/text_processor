@@ -49,7 +49,11 @@ class _MainPageState extends State<MainPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.title),
+        title: Text(
+          widget.title,
+          style:
+              TextStyle(color: _themeController.theme.data.bottomAppBarColor),
+        ),
       ),
       body: LayoutBuilder(builder: (context, constraints) {
         StyleConfig().init(constraints);
@@ -164,7 +168,7 @@ class _MainPageState extends State<MainPage> {
       Padding(
           padding: EdgeInsets.all(StyleConfig.edgeInsets),
           child: RaisedButton(
-            color: _themeController.theme.data.buttonColor,
+            color: Colors.orange,
             child: Icon(Icons.lightbulb_outline),
             onPressed: _themeController.nextTheme,
           )),
@@ -172,8 +176,14 @@ class _MainPageState extends State<MainPage> {
           padding: EdgeInsets.all(StyleConfig.edgeInsets),
           child: RaisedButton(
             color: Colors.redAccent,
-            child: Icon(Icons.refresh_outlined),
+            child: Icon(Icons.clear_all_outlined),
             onPressed: _resetEverything,
+          )),
+      Padding(
+          padding: EdgeInsets.all(StyleConfig.edgeInsets),
+          child: RaisedButton(
+            child: Icon(Icons.refresh_outlined),
+            onPressed: _processResult,
           )),
     ];
   }
@@ -306,20 +316,18 @@ class _MainPageState extends State<MainPage> {
                     hintText: 'Match',
                   )),
             ),
-            SizedBox(
-              width: StyleConfig.spacing,
-            ),
-            Padding(
-                padding: EdgeInsets.all(StyleConfig.edgeInsets),
-                child: RaisedButton(
-                  color: Colors.redAccent,
-                  child: Icon(Icons.remove),
-                  onPressed: () {
-                    _removePipeline(index);
-                    _processResult();
-                  },
-                )),
           ],
+        ),
+        trailing: Padding(
+          padding: EdgeInsets.only(right: StyleConfig.edgeInsets),
+          child: RaisedButton(
+            color: Colors.redAccent,
+            child: Icon(Icons.clear),
+            onPressed: () {
+              _removePipeline(index);
+              _processResult();
+            },
+          ),
         ),
       );
     });
@@ -330,48 +338,47 @@ class _MainPageState extends State<MainPage> {
     return StatefulBuilder(
         builder: (BuildContext context, StateSetter setState) {
       return ListTile(
-          title: Wrap(
-              direction: Axis.horizontal,
-              alignment: WrapAlignment.center,
-              children: [
-            Container(
-              padding: EdgeInsets.all(StyleConfig.edgeInsets),
-              width: StyleConfig.singleLineInputWidth,
-              child: TextField(
-                  controller: controllerGroup.findController,
-                  onChanged: (value) => _processResult(),
-                  maxLines: 1,
-                  keyboardType: TextInputType.text,
-                  decoration: InputDecoration(
-                    hintText: 'Find',
-                  )),
-            ),
-            Container(
-              padding: EdgeInsets.all(StyleConfig.edgeInsets),
-              width: StyleConfig.singleLineInputWidth,
-              child: TextField(
-                  controller: controllerGroup.replaceController,
-                  onChanged: (value) => _processResult(),
-                  maxLines: 1,
-                  keyboardType: TextInputType.text,
-                  decoration: InputDecoration(
-                    hintText: 'Replace',
-                  )),
-            ),
-            SizedBox(
-              width: StyleConfig.spacing,
-            ),
-            Padding(
+        title: Wrap(
+            direction: Axis.horizontal,
+            alignment: WrapAlignment.center,
+            children: [
+              Container(
                 padding: EdgeInsets.all(StyleConfig.edgeInsets),
-                child: RaisedButton(
-                  color: Colors.redAccent,
-                  child: Icon(Icons.remove),
-                  onPressed: () {
-                    _removePipeline(index);
-                    _processResult();
-                  },
-                )),
-          ]));
+                width: StyleConfig.singleLineInputWidth,
+                child: TextField(
+                    controller: controllerGroup.findController,
+                    onChanged: (value) => _processResult(),
+                    maxLines: 1,
+                    keyboardType: TextInputType.text,
+                    decoration: InputDecoration(
+                      hintText: 'Find',
+                    )),
+              ),
+              Container(
+                padding: EdgeInsets.all(StyleConfig.edgeInsets),
+                width: StyleConfig.singleLineInputWidth,
+                child: TextField(
+                    controller: controllerGroup.replaceController,
+                    onChanged: (value) => _processResult(),
+                    maxLines: 1,
+                    keyboardType: TextInputType.text,
+                    decoration: InputDecoration(
+                      hintText: 'Replace',
+                    )),
+              ),
+            ]),
+        trailing: Padding(
+          padding: EdgeInsets.only(right: StyleConfig.edgeInsets),
+          child: RaisedButton(
+            color: Colors.redAccent,
+            child: Icon(Icons.clear),
+            onPressed: () {
+              _removePipeline(index);
+              _processResult();
+            },
+          ),
+        ),
+      );
     });
   }
 
@@ -386,7 +393,6 @@ class _MainPageState extends State<MainPage> {
                 child: TextField(
                   controller: _resultStrController,
                   minLines: StyleConfig.textFieldMinLines,
-                  readOnly: true,
                   maxLines: null,
                   keyboardType: TextInputType.multiline,
                   decoration: InputDecoration(
@@ -449,7 +455,8 @@ class _MainPageState extends State<MainPage> {
       List<String> pipelinedStrList = _processPipeline(separatedStrList);
       List<String> templatedStrList = _populateTemplate(pipelinedStrList);
       String joinedStr = _joinStr(templatedStrList);
-      _setTextField(_resultStrController, joinedStr);
+      String resultStr = _decodeEscape(joinedStr);
+      _setTextField(_resultStrController, resultStr);
     } catch (e) {
       print(e);
     }
@@ -518,10 +525,14 @@ class _MainPageState extends State<MainPage> {
 
   String _joinStr(List<String> templatedStrList) {
     String _joinSeparator = _joinSeparatorController.text;
-    _joinSeparator = _joinSeparator.replaceAll(
-        Const.newline_display, Const.newline_character);
-    _joinSeparator =
-        _joinSeparator.replaceAll(Const.tab_display, Const.tab_character);
     return templatedStrList.join(_joinSeparator);
+  }
+
+  String _decodeEscape(String joinedStr) {
+    String resultStr = joinedStr;
+    resultStr =
+        joinedStr.replaceAll(Const.newline_display, Const.newline_character);
+    resultStr = resultStr.replaceAll(Const.tab_display, Const.tab_character);
+    return resultStr;
   }
 }

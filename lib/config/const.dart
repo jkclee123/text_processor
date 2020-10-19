@@ -8,8 +8,8 @@ const String appTitle = 'Text Processor';
 const String lightThemeId = 'light';
 const String darkThemeId = 'dark';
 
-const String default_split_separator = '\\n';
-const String default_join_separator = ', ';
+const String default_split_separator = newline_display;
+const String default_join_separator = newline_display;
 const String default_placeholder = '##';
 
 const String newline_display = '\\n';
@@ -23,9 +23,16 @@ const String pipeline_match = 'Match';
 const String pipeline_findreplace = 'Find Replace';
 
 final List<AppTheme> appThemeList = <AppTheme>[
-  AppTheme.light(id: lightThemeId),
+  AppTheme(
+      id: lightThemeId,
+      data: ThemeData.light().copyWith(
+        primaryColor: Colors.indigo[600],
+      ),
+      description: ''),
   AppTheme(
       id: darkThemeId,
-      data: ThemeData.dark().copyWith(buttonColor: Colors.orange),
+      data: ThemeData.dark().copyWith(
+        primaryColor: Colors.amberAccent[400],
+      ),
       description: '')
 ];
