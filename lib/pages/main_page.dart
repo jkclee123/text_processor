@@ -250,12 +250,10 @@ class _MainPageState extends State<MainPage> {
     ControllerGroup controllerGroup = _controllerGroupList[index];
     Widget tile = _getPipelineTile(controllerGroup, index);
 
-    return SlideTransition(
-        position: Tween<Offset>(
-          begin: Offset(-1, 0),
-          end: Offset(0, 0),
-        ).animate(animation),
-        child: tile);
+    return SizeTransition(
+      sizeFactor: animation,
+      child: tile,
+    );
   }
 
   Widget _getPipelineTile(ControllerGroup controllerGroup, int index) {
@@ -313,7 +311,7 @@ class _MainPageState extends State<MainPage> {
                   maxLines: 1,
                   keyboardType: TextInputType.text,
                   decoration: InputDecoration(
-                    hintText: 'Match',
+                    prefixText: 'Match: ',
                   )),
             ),
           ],
@@ -351,7 +349,7 @@ class _MainPageState extends State<MainPage> {
                     maxLines: 1,
                     keyboardType: TextInputType.text,
                     decoration: InputDecoration(
-                      hintText: 'Find',
+                      prefixText: 'Find: ',
                     )),
               ),
               Container(
@@ -363,7 +361,7 @@ class _MainPageState extends State<MainPage> {
                     maxLines: 1,
                     keyboardType: TextInputType.text,
                     decoration: InputDecoration(
-                      hintText: 'Replace',
+                      prefixText: 'Replace: ',
                     )),
               ),
             ]),

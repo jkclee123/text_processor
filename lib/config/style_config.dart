@@ -17,7 +17,7 @@ class StyleConfig {
 
   static Axis flexDirection;
 
-  static Duration animationDuration = Duration(milliseconds: 200);
+  static Duration animationDuration = Duration(milliseconds: 300);
 
   static double edgeInsets;
   static double textFieldHeight;
