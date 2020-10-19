@@ -125,7 +125,10 @@ class _MainPageState extends State<MainPage> {
                             hintText: "Source Text",
                             suffixIcon: IconButton(
                                 icon: Icon(Icons.clear),
-                                onPressed: () => _sourceStrController.clear())),
+                                onPressed: () {
+                                  _sourceStrController.clear();
+                                  _processResult();
+                                })),
                       ))))),
       Expanded(
           child: Container(
@@ -146,9 +149,11 @@ class _MainPageState extends State<MainPage> {
                           border: InputBorder.none,
                           hintText: "Template",
                           suffixIcon: IconButton(
-                            icon: Icon(Icons.clear),
-                            onPressed: () => _templateStrController.clear(),
-                          )),
+                              icon: Icon(Icons.clear),
+                              onPressed: () {
+                                _templateStrController.clear();
+                                _processResult();
+                              })),
                     ),
                   ))))
     ];
@@ -446,12 +451,16 @@ class _MainPageState extends State<MainPage> {
       String joinedStr = _joinStr(templatedStrList);
       _setTextField(_resultStrController, joinedStr);
     } catch (e) {
-      // print(e);
+      print(e);
     }
   }
 
   List<String> _separateStr(String sourceStr) {
-    return sourceStr.split(RegExp(_splitSeparatorController.text));
+    String _splitSeparator =
+        _splitSeparatorController.text == Const.default_split_separator
+            ? Const.newline_pattern
+            : _splitSeparatorController.text;
+    return sourceStr.split(RegExp(_splitSeparator));
   }
 
   List<String> _processPipeline(List<String> separatedStrList) {
@@ -508,6 +517,11 @@ class _MainPageState extends State<MainPage> {
   }
 
   String _joinStr(List<String> templatedStrList) {
-    return templatedStrList.join(_joinSeparatorController.text);
+    String _joinSeparator = _joinSeparatorController.text;
+    _joinSeparator = _joinSeparator.replaceAll(
+        Const.newline_display, Const.newline_character);
+    _joinSeparator =
+        _joinSeparator.replaceAll(Const.tab_display, Const.tab_character);
+    return templatedStrList.join(_joinSeparator);
   }
 }
