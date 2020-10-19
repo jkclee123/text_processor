@@ -246,7 +246,7 @@ class _MainPageState extends State<MainPage> {
 
   Widget _pipelineRow(
       BuildContext context, int index, Animation<double> animation) {
-    if (_controllerGroupList.length == 0) return null;
+    if (_controllerGroupList.length <= index) return null;
     ControllerGroup controllerGroup = _controllerGroupList[index];
     Widget tile = _getPipelineTile(controllerGroup, index);
 
