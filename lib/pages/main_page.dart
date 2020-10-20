@@ -17,19 +17,20 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
   ThemeController _themeController;
-
+  GlobalKey<AnimatedListState> _animatedListKey;
   TextEditingController _sourceStrController;
   TextEditingController _templateStrController;
   TextEditingController _splitSeparatorController;
   TextEditingController _joinSeparatorController;
   TextEditingController _placeholderController;
+  bool _distinct;
   TextEditingController _resultStrController;
   List<ControllerGroup> _controllerGroupList;
-  GlobalKey<AnimatedListState> _animatedListKey;
 
   @override
   void initState() {
     super.initState();
+    _animatedListKey = GlobalKey<AnimatedListState>();
     _sourceStrController = TextEditingController();
     _templateStrController = TextEditingController();
     _splitSeparatorController =
@@ -38,9 +39,9 @@ class _MainPageState extends State<MainPage> {
         TextEditingController(text: Const.default_join_separator);
     _placeholderController =
         TextEditingController(text: Const.default_placeholder);
+    _distinct = false;
     _resultStrController = TextEditingController();
     _controllerGroupList = <ControllerGroup>[];
-    _animatedListKey = GlobalKey<AnimatedListState>();
   }
 
   @override
@@ -51,8 +52,6 @@ class _MainPageState extends State<MainPage> {
       appBar: AppBar(
         title: Text(
           widget.title,
-          style:
-              TextStyle(color: _themeController.theme.data.bottomAppBarColor),
         ),
       ),
       body: LayoutBuilder(builder: (context, constraints) {
@@ -168,7 +167,7 @@ class _MainPageState extends State<MainPage> {
       Padding(
           padding: EdgeInsets.all(StyleConfig.edgeInsets),
           child: RaisedButton(
-            color: Colors.orange,
+            color: Colors.amberAccent[400],
             child: Icon(Icons.lightbulb_outline),
             onPressed: _themeController.nextTheme,
           )),
@@ -228,6 +227,20 @@ class _MainPageState extends State<MainPage> {
                   ? 'Placeholder Required'
                   : null,
             )),
+      ),
+      Padding(
+        padding: EdgeInsets.all(StyleConfig.edgeInsets),
+        child: Column(
+          children: [
+            Text('Distinct'),
+            Switch(
+                value: _distinct,
+                onChanged: (value) {
+                  setState(() => _distinct = value);
+                  _processResult();
+                })
+          ],
+        ),
       ),
       Padding(
           padding: EdgeInsets.all(StyleConfig.edgeInsets),
@@ -449,88 +462,88 @@ class _MainPageState extends State<MainPage> {
 
   void _processResult() {
     try {
-      List<String> separatedStrList = _separateStr(_sourceStrController.text);
-      List<String> pipelinedStrList = _processPipeline(separatedStrList);
-      List<String> templatedStrList = _populateTemplate(pipelinedStrList);
-      String joinedStr = _joinStr(templatedStrList);
-      String resultStr = _decodeEscape(joinedStr);
+      List<String> resultStrList = _separateStr(_sourceStrController.text);
+      resultStrList = _processPipeline(resultStrList);
+      resultStrList = _distinctResult(resultStrList);
+      resultStrList = _populateTemplate(resultStrList);
+      String resultStr = _joinStr(resultStrList);
       _setTextField(_resultStrController, resultStr);
     } catch (e) {
       print(e);
     }
   }
 
-  List<String> _separateStr(String sourceStr) {
+  List<String> _separateStr(String processStr) {
     String _splitSeparator =
         _splitSeparatorController.text == Const.default_split_separator
-            ? Const.newline_pattern
+            ? Const.split_newline_pattern
             : _splitSeparatorController.text;
-    return sourceStr.split(RegExp(_splitSeparator));
+    return processStr.split(RegExp(_splitSeparator));
   }
 
-  List<String> _processPipeline(List<String> separatedStrList) {
-    List<String> processStrList = separatedStrList;
+  List<String> _processPipeline(List<String> processStrList) {
+    List<String> workingStrList = processStrList;
     for (ControllerGroup controllerGroup in _controllerGroupList) {
       if (controllerGroup is MatchControllerGroup) {
-        processStrList = _processMatchPipeline(controllerGroup, processStrList);
+        workingStrList = _processMatchPipeline(controllerGroup, workingStrList);
       } else if (controllerGroup is FindReplaceControllerGroup) {
-        processStrList =
-            _processFindReplacePipeline(controllerGroup, processStrList);
+        workingStrList =
+            _processFindReplacePipeline(controllerGroup, workingStrList);
       }
     }
-    return processStrList;
+    return workingStrList;
   }
 
   List<String> _processMatchPipeline(
       MatchControllerGroup controllerGroup, List<String> processStrList) {
-    List<String> pipelinedStrList = <String>[];
+    List<String> workingStrList = <String>[];
     for (String processStr in processStrList) {
       RegExp regExp = RegExp(controllerGroup.patternController.text,
           caseSensitive: controllerGroup.caseSensitive);
       if (regExp.hasMatch(processStr) == controllerGroup.contains) {
-        pipelinedStrList.add(processStr);
+        workingStrList.add(processStr);
       }
     }
-    return pipelinedStrList;
+    return workingStrList;
   }
 
   List<String> _processFindReplacePipeline(
       FindReplaceControllerGroup controllerGroup, List<String> processStrList) {
-    List<String> pipelinedStrList = <String>[];
+    List<String> workingStrList = <String>[];
     for (String processStr in processStrList) {
       String findStr = controllerGroup.findController.text;
       String replaceStr = controllerGroup.replaceController.text;
       RegExp findRegExp = RegExp(findStr, caseSensitive: true);
       String resultStr = processStr.replaceAll(findRegExp, replaceStr);
-      pipelinedStrList.add(resultStr);
+      workingStrList.add(resultStr);
     }
-    return pipelinedStrList;
+    return workingStrList;
   }
 
-  List<String> _populateTemplate(List<String> pipelinedStrList) {
+  List<String> _populateTemplate(List<String> processStrList) {
     String templateStr = _templateStrController.text;
     if (templateStr.isEmpty) {
-      return pipelinedStrList;
+      return processStrList;
     }
-    List<String> templatedStrList = <String>[];
+    List<String> workingStrList = <String>[];
     String findStr = _placeholderController.text;
-    for (String replaceStr in pipelinedStrList) {
+    for (String replaceStr in processStrList) {
       String resultStr = templateStr.replaceAll(findStr, replaceStr);
-      templatedStrList.add(resultStr);
+      workingStrList.add(resultStr);
     }
-    return templatedStrList;
+    return workingStrList;
   }
 
-  String _joinStr(List<String> templatedStrList) {
+  List<String> _distinctResult(List<String> processStrList) {
+    return _distinct ? processStrList.toSet().toList() : processStrList;
+  }
+
+  String _joinStr(List<String> processStrList) {
     String _joinSeparator = _joinSeparatorController.text;
-    return templatedStrList.join(_joinSeparator);
-  }
-
-  String _decodeEscape(String joinedStr) {
-    String resultStr = joinedStr;
-    resultStr =
-        joinedStr.replaceAll(Const.newline_display, Const.newline_character);
-    resultStr = resultStr.replaceAll(Const.tab_display, Const.tab_character);
-    return resultStr;
+    _joinSeparator = _joinSeparator.replaceAll(
+        RegExp(Const.join_newline_pattern), Const.newline_character);
+    _joinSeparator =
+        _joinSeparator.replaceAll(Const.tab_display, Const.tab_character);
+    return processStrList.join(_joinSeparator);
   }
 }
