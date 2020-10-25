@@ -6,6 +6,7 @@ import 'package:theme_provider/theme_provider.dart';
 import 'package:text_processor/config/style_config.dart';
 import 'package:text_processor/config/const.dart' as Const;
 import 'package:flutter/services.dart';
+import 'package:tuple/tuple.dart';
 
 class MainPage extends StatefulWidget {
   MainPage({Key key, this.title}) : super(key: key);
@@ -18,11 +19,13 @@ class MainPage extends StatefulWidget {
 class _MainPageState extends State<MainPage> {
   ThemeController _themeController;
   GlobalKey<AnimatedListState> _animatedListKey;
-  TextEditingController _sourceStrController;
+  TextEditingController _sourceStr1Controller;
+  TextEditingController _sourceStr2Controller;
   TextEditingController _templateStrController;
   TextEditingController _splitSeparatorController;
   TextEditingController _joinSeparatorController;
   TextEditingController _placeholderController;
+  String _sourceMapping;
   bool _distinct;
   TextEditingController _resultStrController;
   List<ControllerGroup> _controllerGroupList;
@@ -31,7 +34,8 @@ class _MainPageState extends State<MainPage> {
   void initState() {
     super.initState();
     _animatedListKey = GlobalKey<AnimatedListState>();
-    _sourceStrController = TextEditingController();
+    _sourceStr1Controller = TextEditingController();
+    _sourceStr2Controller = TextEditingController();
     _templateStrController = TextEditingController();
     _splitSeparatorController =
         TextEditingController(text: Const.default_split_separator);
@@ -39,6 +43,7 @@ class _MainPageState extends State<MainPage> {
         TextEditingController(text: Const.default_join_separator);
     _placeholderController =
         TextEditingController(text: Const.default_placeholder);
+    _sourceMapping = Const.straight_mapping;
     _distinct = false;
     _resultStrController = TextEditingController();
     _controllerGroupList = <ControllerGroup>[];
@@ -83,6 +88,7 @@ class _MainPageState extends State<MainPage> {
             children: _sourceTextFieldList(),
           ),
         ),
+        _templateTextField(),
         Wrap(
           direction: Axis.horizontal,
           alignment: WrapAlignment.center,
@@ -118,18 +124,19 @@ class _MainPageState extends State<MainPage> {
                   child: Padding(
                       padding: EdgeInsets.all(StyleConfig.edgeInsets),
                       child: TextField(
-                        controller: _sourceStrController,
+                        controller: _sourceStr1Controller,
                         onChanged: (value) => _processResult(),
                         minLines: StyleConfig.textFieldMinLines,
                         maxLines: null,
                         keyboardType: TextInputType.multiline,
                         decoration: InputDecoration(
                             border: InputBorder.none,
-                            hintText: "Source Text",
+                            hintText: "Source Text 1",
+                            helperText: _getPlaceHolderStr(1),
                             suffixIcon: IconButton(
                                 icon: Icon(Icons.clear),
                                 onPressed: () {
-                                  _sourceStrController.clear();
+                                  _sourceStr1Controller.clear();
                                   _processResult();
                                 })),
                       ))))),
@@ -141,25 +148,52 @@ class _MainPageState extends State<MainPage> {
               child: Card(
                   elevation: StyleConfig.elevation,
                   child: Padding(
-                    padding: EdgeInsets.all(StyleConfig.edgeInsets),
-                    child: TextField(
-                      controller: _templateStrController,
-                      onChanged: (value) => _processResult(),
-                      minLines: StyleConfig.textFieldMinLines,
-                      maxLines: null,
-                      keyboardType: TextInputType.multiline,
-                      decoration: InputDecoration(
-                          border: InputBorder.none,
-                          hintText: "Template",
-                          suffixIcon: IconButton(
-                              icon: Icon(Icons.clear),
-                              onPressed: () {
-                                _templateStrController.clear();
-                                _processResult();
-                              })),
-                    ),
-                  ))))
+                      padding: EdgeInsets.all(StyleConfig.edgeInsets),
+                      child: TextField(
+                        controller: _sourceStr2Controller,
+                        onChanged: (value) => _processResult(),
+                        minLines: StyleConfig.textFieldMinLines,
+                        maxLines: null,
+                        keyboardType: TextInputType.multiline,
+                        decoration: InputDecoration(
+                            border: InputBorder.none,
+                            helperText: _getPlaceHolderStr(2),
+                            hintText: "Source Text 2",
+                            suffixIcon: IconButton(
+                                icon: Icon(Icons.clear),
+                                onPressed: () {
+                                  _sourceStr2Controller.clear();
+                                  _processResult();
+                                })),
+                      )))))
     ];
+  }
+
+  Widget _templateTextField() {
+    return Container(
+        padding: EdgeInsets.all(StyleConfig.edgeInsets),
+        constraints: BoxConstraints(maxHeight: StyleConfig.textFieldHeight),
+        child: Card(
+            elevation: StyleConfig.elevation,
+            child: Padding(
+              padding: EdgeInsets.all(StyleConfig.edgeInsets),
+              child: TextField(
+                controller: _templateStrController,
+                onChanged: (value) => _processResult(),
+                minLines: StyleConfig.templateTextFieldMinLines,
+                maxLines: null,
+                keyboardType: TextInputType.multiline,
+                decoration: InputDecoration(
+                    border: InputBorder.none,
+                    hintText: "Template",
+                    suffixIcon: IconButton(
+                        icon: Icon(Icons.clear),
+                        onPressed: () {
+                          _templateStrController.clear();
+                          _processResult();
+                        })),
+              ),
+            )));
   }
 
   List<Widget> _settingsBtnList() {
@@ -178,12 +212,13 @@ class _MainPageState extends State<MainPage> {
             child: Icon(Icons.clear_all_outlined),
             onPressed: _resetEverything,
           )),
-      Padding(
-          padding: EdgeInsets.all(StyleConfig.edgeInsets),
-          child: RaisedButton(
-            child: Icon(Icons.refresh_outlined),
-            onPressed: _processResult,
-          )),
+      // For Development
+      // Padding(
+      //     padding: EdgeInsets.all(StyleConfig.edgeInsets),
+      //     child: RaisedButton(
+      //       child: Icon(Icons.refresh_outlined),
+      //       onPressed: _processResult,
+      //     )),
     ];
   }
 
@@ -242,6 +277,18 @@ class _MainPageState extends State<MainPage> {
           ],
         ),
       ),
+      Container(
+          padding: EdgeInsets.all(StyleConfig.edgeInsets),
+          width: StyleConfig.dropdownWidth,
+          child: DropdownButtonFormField(
+            value: _sourceMapping,
+            items: Const.sourceMappingList,
+            onChanged: (value) {
+              _sourceMapping = value;
+              _processResult();
+            },
+            decoration: InputDecoration(prefixText: 'Mapping: '),
+          )),
       Padding(
           padding: EdgeInsets.all(StyleConfig.edgeInsets),
           child: RaisedButton(
@@ -435,13 +482,14 @@ class _MainPageState extends State<MainPage> {
     _controllerGroupList.removeAt(index);
   }
 
+  String _getPlaceHolderStr(int index) {
+    return _placeholderController.text + index.toString();
+  }
+
   void _resetEverything() {
-    _sourceStrController.clear();
+    _sourceStr1Controller.clear();
     _templateStrController.clear();
     _resultStrController.clear();
-    _setTextField(_splitSeparatorController, Const.default_split_separator);
-    _setTextField(_joinSeparatorController, Const.default_join_separator);
-    _setTextField(_placeholderController, Const.default_placeholder);
     while (_controllerGroupList.length > 0) {
       _removePipeline(0);
     }
@@ -462,10 +510,15 @@ class _MainPageState extends State<MainPage> {
 
   void _processResult() {
     try {
-      List<String> resultStrList = _separateStr(_sourceStrController.text);
-      resultStrList = _processPipeline(resultStrList);
-      resultStrList = _distinctResult(resultStrList);
-      resultStrList = _populateTemplate(resultStrList);
+      List<String> sourceStr1List = _separateStr(_sourceStr1Controller.text);
+      sourceStr1List = _processPipeline(sourceStr1List);
+      sourceStr1List = _distinctResult(sourceStr1List);
+      List<String> sourceStr2List = _separateStr(_sourceStr2Controller.text);
+      sourceStr2List = _processPipeline(sourceStr2List);
+      sourceStr2List = _distinctResult(sourceStr2List);
+      List<Tuple2<String, String>> sourceTupleList =
+          _zipSourceList(sourceStr1List, sourceStr2List);
+      List<String> resultStrList = _populateTemplate(sourceTupleList);
       String resultStr = _joinStr(resultStrList);
       _setTextField(_resultStrController, resultStr);
     } catch (e) {
@@ -473,69 +526,105 @@ class _MainPageState extends State<MainPage> {
     }
   }
 
-  List<String> _separateStr(String processStr) {
+  List<String> _separateStr(String sourceStr) {
     String _splitSeparator =
         _splitSeparatorController.text == Const.default_split_separator
             ? Const.split_newline_pattern
             : _splitSeparatorController.text;
-    return processStr.split(RegExp(_splitSeparator));
+    return sourceStr.split(RegExp(_splitSeparator));
   }
 
-  List<String> _processPipeline(List<String> processStrList) {
-    List<String> workingStrList = processStrList;
+  List<String> _processPipeline(List<String> sourceStrList) {
+    List<String> resultStrList = sourceStrList;
     for (ControllerGroup controllerGroup in _controllerGroupList) {
       if (controllerGroup is MatchControllerGroup) {
-        workingStrList = _processMatchPipeline(controllerGroup, workingStrList);
+        resultStrList = _processMatchPipeline(controllerGroup, resultStrList);
       } else if (controllerGroup is FindReplaceControllerGroup) {
-        workingStrList =
-            _processFindReplacePipeline(controllerGroup, workingStrList);
+        resultStrList =
+            _processFindReplacePipeline(controllerGroup, resultStrList);
       }
     }
-    return workingStrList;
+    return resultStrList;
   }
 
   List<String> _processMatchPipeline(
-      MatchControllerGroup controllerGroup, List<String> processStrList) {
-    List<String> workingStrList = <String>[];
-    for (String processStr in processStrList) {
+      MatchControllerGroup controllerGroup, List<String> sourceStrList) {
+    List<String> resultStrList = [];
+    for (String sourceStr in sourceStrList) {
       RegExp regExp = RegExp(controllerGroup.patternController.text,
           caseSensitive: controllerGroup.caseSensitive);
-      if (regExp.hasMatch(processStr) == controllerGroup.contains) {
-        workingStrList.add(processStr);
+      if (regExp.hasMatch(sourceStr) == controllerGroup.contains) {
+        resultStrList.add(sourceStr);
       }
     }
-    return workingStrList;
+    return resultStrList;
   }
 
   List<String> _processFindReplacePipeline(
-      FindReplaceControllerGroup controllerGroup, List<String> processStrList) {
-    List<String> workingStrList = <String>[];
-    for (String processStr in processStrList) {
+      FindReplaceControllerGroup controllerGroup, List<String> sourceStrList) {
+    List<String> resultStrList = [];
+    for (String sourceStr in sourceStrList) {
       String findStr = controllerGroup.findController.text;
       String replaceStr = controllerGroup.replaceController.text;
       RegExp findRegExp = RegExp(findStr, caseSensitive: true);
-      String resultStr = processStr.replaceAll(findRegExp, replaceStr);
-      workingStrList.add(resultStr);
+      String resultStr = sourceStr.replaceAll(findRegExp, replaceStr);
+      resultStrList.add(resultStr);
     }
-    return workingStrList;
+    return resultStrList;
   }
 
-  List<String> _populateTemplate(List<String> processStrList) {
-    String templateStr = _templateStrController.text;
-    if (templateStr.isEmpty) {
-      return processStrList;
-    }
-    List<String> workingStrList = <String>[];
-    String findStr = _placeholderController.text;
-    for (String replaceStr in processStrList) {
-      String resultStr = templateStr.replaceAll(findStr, replaceStr);
-      workingStrList.add(resultStr);
-    }
-    return workingStrList;
+  List<String> _distinctResult(List<String> sourceStrList) {
+    return _distinct ? sourceStrList.toSet().toList() : sourceStrList;
   }
 
-  List<String> _distinctResult(List<String> processStrList) {
-    return _distinct ? processStrList.toSet().toList() : processStrList;
+  List<Tuple2<String, String>> _zipSourceList(
+      List<String> sourceStr1List, List<String> sourceStr2List) {
+    if (_sourceMapping == Const.straight_mapping) {
+      return _straightZipSourceList(sourceStr1List, sourceStr2List);
+    } else if (_sourceMapping == Const.cross_mapping) {
+      return _crossZipSourceList(sourceStr1List, sourceStr2List);
+    }
+    return null;
+  }
+
+  List<Tuple2<String, String>> _straightZipSourceList(
+      List<String> sourceStr1List, List<String> sourceStr2List) {
+    while (sourceStr2List.length < sourceStr1List.length) {
+      sourceStr2List.add('');
+    }
+    List<Tuple2<String, String>> resultTupleList = [];
+    sourceStr1List.asMap().forEach((index, value) =>
+        resultTupleList.add(Tuple2(value, sourceStr2List[index])));
+    return resultTupleList;
+  }
+
+  List<Tuple2<String, String>> _crossZipSourceList(
+      List<String> sourceStr1List, List<String> sourceStr2List) {
+    List<Tuple2<String, String>> resultTupleList = [];
+    for (String sourceStr1 in sourceStr1List) {
+      for (String sourceStr2 in sourceStr2List) {
+        resultTupleList.add(Tuple2(sourceStr1, sourceStr2));
+      }
+    }
+    return resultTupleList;
+  }
+
+  List<String> _populateTemplate(List<Tuple2<String, String>> sourceTupleList) {
+    String placeholder1Str = _getPlaceHolderStr(1);
+    String placeholder2Str = _getPlaceHolderStr(2);
+    String templateStr = _templateStrController.text.isNotEmpty
+        ? _templateStrController.text
+        : _sourceStr2Controller.text.isEmpty
+            ? '$placeholder1Str'
+            : '$placeholder1Str: $placeholder2Str';
+    List<String> resultStrList = [];
+    for (Tuple2<String, String> sourceTuple in sourceTupleList) {
+      String resultStr =
+          templateStr.replaceAll(placeholder1Str, sourceTuple.item1);
+      resultStr = resultStr.replaceAll(placeholder2Str, sourceTuple.item2);
+      resultStrList.add(resultStr);
+    }
+    return resultStrList;
   }
 
   String _joinStr(List<String> processStrList) {

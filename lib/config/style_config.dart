@@ -4,13 +4,14 @@ import 'package:flutter/rendering.dart';
 class StyleConfig {
   static double elevation = 5.0;
   static int textFieldMinLines = 5;
-  static double singleLineInputWidth = 180;
+  static int templateTextFieldMinLines = 3;
+  static double singleLineInputWidth = 160;
+  static double dropdownWidth = 180;
   static double textFieldFlexThreshold = 800;
 
   static double _edgeInsetsMultiplier = 0.01;
   static double _textFieldHeightHoriMultiplier = 0.5;
   static double _textFieldHeightVertMultiplier = 0.25;
-  static double _spacingMultiplier = 0.05;
 
   static double _screenWidth;
   static double _screenHeight;
@@ -34,6 +35,5 @@ class StyleConfig {
     textFieldHeight = flexDirection == Axis.horizontal
         ? _screenHeight * _textFieldHeightHoriMultiplier
         : _screenHeight * _textFieldHeightVertMultiplier;
-    spacing = _screenWidth * _spacingMultiplier;
   }
 }

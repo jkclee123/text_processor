@@ -23,6 +23,20 @@ const String join_newline_pattern = r'(\\r\\n|\\r|\\n)';
 const String pipeline_match = 'Match';
 const String pipeline_findreplace = 'Find Replace';
 
+const String straight_mapping = 'Straight';
+const String cross_mapping = 'Cross';
+
+final List<DropdownMenuItem<String>> sourceMappingList = [
+  DropdownMenuItem(
+    child: Text(straight_mapping),
+    value: straight_mapping,
+  ),
+  DropdownMenuItem(
+    child: Text(cross_mapping),
+    value: cross_mapping,
+  ),
+];
+
 final List<AppTheme> appThemeList = <AppTheme>[
   AppTheme(
       id: lightThemeId,
