@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:theme_provider/theme_provider.dart';
 
 const String appTitle = 'Text Processor';
+const bool debugMode = false;
 
 const String lightThemeId = 'light';
 const String darkThemeId = 'dark';
@@ -17,8 +18,8 @@ const String tab_display = '\\t';
 const String newline_character = '\n';
 const String tab_character = '\t';
 
-const String split_newline_pattern = '(\r\n|\r|\n)';
-const String join_newline_pattern = r'(\\r\\n|\\r|\\n)';
+const String split_newline_pattern = '\r\n|\r|\n';
+const String join_newline_pattern = r'\\r\\n|\\r|\\n';
 
 const String pipeline_match = 'Match';
 const String pipeline_findreplace = 'Find Replace';
@@ -44,5 +45,12 @@ final List<AppTheme> appThemeList = <AppTheme>[
         primaryColor: Colors.indigo[600],
       ),
       description: ''),
-  AppTheme.dark(id: darkThemeId)
+  AppTheme(
+      id: darkThemeId,
+      data: ThemeData.dark().copyWith(
+        floatingActionButtonTheme: FloatingActionButtonThemeData(
+          foregroundColor: Colors.black,
+        ),
+      ),
+      description: ''),
 ];

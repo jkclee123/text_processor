@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:text_processor/controller_group/controller_group.dart';
 import 'package:text_processor/controller_group/findreplace_controller_group.dart';
@@ -19,6 +21,7 @@ class MainPage extends StatefulWidget {
 class _MainPageState extends State<MainPage> {
   ThemeController _themeController;
   GlobalKey<AnimatedListState> _animatedListKey;
+  Completer _completer;
   TextEditingController _sourceStr1Controller;
   TextEditingController _sourceStr2Controller;
   TextEditingController _templateStrController;
@@ -34,6 +37,7 @@ class _MainPageState extends State<MainPage> {
   void initState() {
     super.initState();
     _animatedListKey = GlobalKey<AnimatedListState>();
+    _completer = Completer();
     _sourceStr1Controller = TextEditingController();
     _sourceStr2Controller = TextEditingController();
     _templateStrController = TextEditingController();
@@ -209,16 +213,16 @@ class _MainPageState extends State<MainPage> {
           padding: EdgeInsets.all(StyleConfig.edgeInsets),
           child: RaisedButton(
             color: Colors.redAccent,
-            child: Icon(Icons.clear_all_outlined),
+            child: Icon(Icons.refresh_outlined),
             onPressed: _resetEverything,
           )),
-      // For Development
-      // Padding(
-      //     padding: EdgeInsets.all(StyleConfig.edgeInsets),
-      //     child: RaisedButton(
-      //       child: Icon(Icons.refresh_outlined),
-      //       onPressed: _processResult,
-      //     )),
+      if (Const.debugMode)
+        Padding(
+            padding: EdgeInsets.all(StyleConfig.edgeInsets),
+            child: RaisedButton(
+              child: Icon(Icons.refresh_outlined),
+              onPressed: _processResult,
+            ))
     ];
   }
 
@@ -226,7 +230,7 @@ class _MainPageState extends State<MainPage> {
     return [
       Container(
         padding: EdgeInsets.all(StyleConfig.edgeInsets),
-        width: StyleConfig.singleLineInputWidth,
+        width: StyleConfig.shortInputWidth,
         child: TextField(
             controller: _splitSeparatorController,
             onChanged: (value) => _processResult(),
@@ -238,7 +242,7 @@ class _MainPageState extends State<MainPage> {
       ),
       Container(
         padding: EdgeInsets.all(StyleConfig.edgeInsets),
-        width: StyleConfig.singleLineInputWidth,
+        width: StyleConfig.shortInputWidth,
         child: TextField(
             controller: _joinSeparatorController,
             onChanged: (value) => _processResult(),
@@ -250,7 +254,7 @@ class _MainPageState extends State<MainPage> {
       ),
       Container(
         padding: EdgeInsets.all(StyleConfig.edgeInsets),
-        width: StyleConfig.singleLineInputWidth,
+        width: StyleConfig.shortInputWidth,
         child: TextField(
             controller: _placeholderController,
             onChanged: (value) => _processResult(),
@@ -279,7 +283,7 @@ class _MainPageState extends State<MainPage> {
       ),
       Container(
           padding: EdgeInsets.all(StyleConfig.edgeInsets),
-          width: StyleConfig.dropdownWidth,
+          width: StyleConfig.longInputWidth,
           child: DropdownButtonFormField(
             value: _sourceMapping,
             items: Const.sourceMappingList,
@@ -342,6 +346,9 @@ class _MainPageState extends State<MainPage> {
                   Switch(
                       value: controllerGroup.contains,
                       onChanged: (value) {
+                        if (!value) {
+                          setState(() => controllerGroup.outputMatched = false);
+                        }
                         setState(() => controllerGroup.contains = value);
                         _processResult();
                       })
@@ -352,7 +359,24 @@ class _MainPageState extends State<MainPage> {
               padding: EdgeInsets.all(StyleConfig.edgeInsets),
               child: Column(
                 children: [
-                  Text('Match Case'),
+                  Text('Output Matched'),
+                  Switch(
+                      value: controllerGroup.outputMatched,
+                      onChanged: (value) {
+                        if (value) {
+                          setState(() => controllerGroup.contains = true);
+                        }
+                        setState(() => controllerGroup.outputMatched = value);
+                        _processResult();
+                      })
+                ],
+              ),
+            ),
+            Padding(
+              padding: EdgeInsets.all(StyleConfig.edgeInsets),
+              child: Column(
+                children: [
+                  Text('Case Sensitive'),
                   Switch(
                       value: controllerGroup.caseSensitive,
                       onChanged: (value) {
@@ -364,7 +388,7 @@ class _MainPageState extends State<MainPage> {
             ),
             Container(
               padding: EdgeInsets.all(StyleConfig.edgeInsets),
-              width: StyleConfig.singleLineInputWidth,
+              width: StyleConfig.longInputWidth,
               child: TextField(
                   controller: controllerGroup.patternController,
                   onChanged: (value) => _processResult(),
@@ -402,7 +426,7 @@ class _MainPageState extends State<MainPage> {
             children: [
               Container(
                 padding: EdgeInsets.all(StyleConfig.edgeInsets),
-                width: StyleConfig.singleLineInputWidth,
+                width: StyleConfig.longInputWidth,
                 child: TextField(
                     controller: controllerGroup.findController,
                     onChanged: (value) => _processResult(),
@@ -414,7 +438,7 @@ class _MainPageState extends State<MainPage> {
               ),
               Container(
                 padding: EdgeInsets.all(StyleConfig.edgeInsets),
-                width: StyleConfig.singleLineInputWidth,
+                width: StyleConfig.longInputWidth,
                 child: TextField(
                     controller: controllerGroup.replaceController,
                     onChanged: (value) => _processResult(),
@@ -521,8 +545,12 @@ class _MainPageState extends State<MainPage> {
       List<String> resultStrList = _populateTemplate(sourceTupleList);
       String resultStr = _joinStr(resultStrList);
       _setTextField(_resultStrController, resultStr);
-    } catch (e) {
-      print(e);
+    } catch (e, stacktrace) {
+      if (Const.debugMode) {
+        _completer.completeError(e, stacktrace);
+      } else {
+        print(e);
+      }
     }
   }
 
@@ -550,11 +578,18 @@ class _MainPageState extends State<MainPage> {
   List<String> _processMatchPipeline(
       MatchControllerGroup controllerGroup, List<String> sourceStrList) {
     List<String> resultStrList = [];
+    RegExp regExp = RegExp(controllerGroup.patternController.text,
+        caseSensitive: controllerGroup.caseSensitive);
     for (String sourceStr in sourceStrList) {
-      RegExp regExp = RegExp(controllerGroup.patternController.text,
-          caseSensitive: controllerGroup.caseSensitive);
       if (regExp.hasMatch(sourceStr) == controllerGroup.contains) {
-        resultStrList.add(sourceStr);
+        if (controllerGroup.outputMatched) {
+          RegExpMatch regExpMatch = regExp.firstMatch(sourceStr);
+          if (regExpMatch.groupCount > 0) {
+            resultStrList.add(regExpMatch.group(1));
+          }
+        } else {
+          resultStrList.add(sourceStr);
+        }
       }
     }
     return resultStrList;
@@ -563,10 +598,10 @@ class _MainPageState extends State<MainPage> {
   List<String> _processFindReplacePipeline(
       FindReplaceControllerGroup controllerGroup, List<String> sourceStrList) {
     List<String> resultStrList = [];
+    String findStr = controllerGroup.findController.text;
+    String replaceStr = controllerGroup.replaceController.text;
+    RegExp findRegExp = RegExp(findStr, caseSensitive: true);
     for (String sourceStr in sourceStrList) {
-      String findStr = controllerGroup.findController.text;
-      String replaceStr = controllerGroup.replaceController.text;
-      RegExp findRegExp = RegExp(findStr, caseSensitive: true);
       String resultStr = sourceStr.replaceAll(findRegExp, replaceStr);
       resultStrList.add(resultStr);
     }
@@ -579,12 +614,13 @@ class _MainPageState extends State<MainPage> {
 
   List<Tuple2<String, String>> _zipSourceList(
       List<String> sourceStr1List, List<String> sourceStr2List) {
+    List<Tuple2<String, String>> resultTupleList;
     if (_sourceMapping == Const.straight_mapping) {
-      return _straightZipSourceList(sourceStr1List, sourceStr2List);
+      resultTupleList = _straightZipSourceList(sourceStr1List, sourceStr2List);
     } else if (_sourceMapping == Const.cross_mapping) {
-      return _crossZipSourceList(sourceStr1List, sourceStr2List);
+      resultTupleList = _crossZipSourceList(sourceStr1List, sourceStr2List);
     }
-    return null;
+    return resultTupleList;
   }
 
   List<Tuple2<String, String>> _straightZipSourceList(
@@ -593,8 +629,8 @@ class _MainPageState extends State<MainPage> {
       sourceStr2List.add('');
     }
     List<Tuple2<String, String>> resultTupleList = [];
-    sourceStr1List.asMap().forEach((index, value) =>
-        resultTupleList.add(Tuple2(value, sourceStr2List[index])));
+    sourceStr1List.asMap().forEach((index, sourceStr1) =>
+        resultTupleList.add(Tuple2(sourceStr1, sourceStr2List[index])));
     return resultTupleList;
   }
 

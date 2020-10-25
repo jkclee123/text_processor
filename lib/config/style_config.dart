@@ -5,8 +5,8 @@ class StyleConfig {
   static double elevation = 5.0;
   static int textFieldMinLines = 5;
   static int templateTextFieldMinLines = 3;
-  static double singleLineInputWidth = 160;
-  static double dropdownWidth = 180;
+  static double shortInputWidth = 160;
+  static double longInputWidth = 180;
   static double textFieldFlexThreshold = 800;
 
   static double _edgeInsetsMultiplier = 0.01;
