@@ -424,6 +424,20 @@ class _MainPageState extends State<MainPage> {
             direction: Axis.horizontal,
             alignment: WrapAlignment.center,
             children: [
+              Padding(
+                padding: EdgeInsets.all(StyleConfig.edgeInsets),
+                child: Column(
+                  children: [
+                    Text('Case Sensitive'),
+                    Switch(
+                        value: controllerGroup.caseSensitive,
+                        onChanged: (value) {
+                          setState(() => controllerGroup.caseSensitive = value);
+                          _processResult();
+                        })
+                  ],
+                ),
+              ),
               Container(
                 padding: EdgeInsets.all(StyleConfig.edgeInsets),
                 width: StyleConfig.longInputWidth,
@@ -600,7 +614,8 @@ class _MainPageState extends State<MainPage> {
     List<String> resultStrList = [];
     String findStr = controllerGroup.findController.text;
     String replaceStr = controllerGroup.replaceController.text;
-    RegExp findRegExp = RegExp(findStr, caseSensitive: true);
+    RegExp findRegExp =
+        RegExp(findStr, caseSensitive: controllerGroup.caseSensitive);
     for (String sourceStr in sourceStrList) {
       String resultStr = sourceStr.replaceAll(findRegExp, replaceStr);
       resultStrList.add(resultStr);
