@@ -378,112 +378,103 @@ class _MainPageState extends State<MainPage> {
       MatchControllerGroup controllerGroup, int index) {
     return StatefulBuilder(
         builder: (BuildContext context, StateSetter setState) {
-      return Center(
-        child: Container(
-          width: StyleConfig.pipelinewidth,
-          padding: EdgeInsets.all(StyleConfig.edgeInsets),
-          child: Card(
-            elevation: StyleConfig.elevation,
-            child: ListTile(
-              title: Wrap(
-                direction: Axis.horizontal,
-                alignment: WrapAlignment.center,
-                children: [
-                  Padding(
-                    padding: EdgeInsets.all(StyleConfig.edgeInsets),
-                    child: Column(
-                      children: [
-                        Text('Contains'),
-                        Switch(
-                            value: controllerGroup.contains,
-                            onChanged: (value) {
-                              if (!value) {
-                                setState(() =>
-                                    controllerGroup.outputMatched = false);
-                              }
-                              setState(() => controllerGroup.contains = value);
-                              _processResult();
-                            })
-                      ],
-                    ),
-                  ),
-                  Padding(
-                    padding: EdgeInsets.all(StyleConfig.edgeInsets),
-                    child: Column(
-                      children: [
-                        Text('Output Matched'),
-                        Switch(
-                            value: controllerGroup.outputMatched,
-                            onChanged: (value) {
-                              if (value) {
-                                setState(() => controllerGroup.contains = true);
-                              }
-                              setState(
-                                  () => controllerGroup.outputMatched = value);
-                              _processResult();
-                            })
-                      ],
-                    ),
-                  ),
-                  Padding(
-                    padding: EdgeInsets.all(StyleConfig.edgeInsets),
-                    child: Column(
-                      children: [
-                        Text('Case Sensitive'),
-                        Switch(
-                            value: controllerGroup.caseSensitive,
-                            onChanged: (value) {
-                              setState(
-                                  () => controllerGroup.caseSensitive = value);
-                              _processResult();
-                            })
-                      ],
-                    ),
-                  ),
-                  Container(
-                    padding: EdgeInsets.all(StyleConfig.edgeInsets),
-                    width: StyleConfig.longInputWidth,
-                    child: TextField(
-                        controller: controllerGroup.patternController,
-                        onChanged: (value) => _processResult(),
-                        maxLines: 1,
-                        keyboardType: TextInputType.text,
-                        decoration: InputDecoration(
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius:
-                                BorderRadius.circular(StyleConfig.borderRadius),
-                            borderSide: BorderSide(
-                                color: _themeController.theme.data.accentColor,
-                                width: StyleConfig.borderWidth),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius:
-                                BorderRadius.circular(StyleConfig.borderRadius),
-                            borderSide: BorderSide(
-                                color:
-                                    _themeController.theme.data.disabledColor,
-                                width: StyleConfig.borderWidth),
-                          ),
-                          labelText: 'Match',
-                        )),
-                  ),
-                ],
-              ),
-              trailing: Padding(
-                padding: EdgeInsets.only(right: StyleConfig.edgeInsets),
-                child: RaisedButton(
-                  color: Colors.redAccent,
-                  child: Icon(Icons.clear),
-                  onPressed: () {
-                    _removePipeline(index);
-                    _processResult();
-                  },
+      return Column(children: [
+        ListTile(
+          title: Wrap(
+            direction: Axis.horizontal,
+            alignment: WrapAlignment.center,
+            children: [
+              Padding(
+                padding: EdgeInsets.all(StyleConfig.edgeInsets),
+                child: Column(
+                  children: [
+                    Text('Contains'),
+                    Switch(
+                        value: controllerGroup.contains,
+                        onChanged: (value) {
+                          if (!value) {
+                            setState(
+                                () => controllerGroup.outputMatched = false);
+                          }
+                          setState(() => controllerGroup.contains = value);
+                          _processResult();
+                        })
+                  ],
                 ),
               ),
+              Padding(
+                padding: EdgeInsets.all(StyleConfig.edgeInsets),
+                child: Column(
+                  children: [
+                    Text('Output Matched'),
+                    Switch(
+                        value: controllerGroup.outputMatched,
+                        onChanged: (value) {
+                          if (value) {
+                            setState(() => controllerGroup.contains = true);
+                          }
+                          setState(() => controllerGroup.outputMatched = value);
+                          _processResult();
+                        })
+                  ],
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.all(StyleConfig.edgeInsets),
+                child: Column(
+                  children: [
+                    Text('Case Sensitive'),
+                    Switch(
+                        value: controllerGroup.caseSensitive,
+                        onChanged: (value) {
+                          setState(() => controllerGroup.caseSensitive = value);
+                          _processResult();
+                        })
+                  ],
+                ),
+              ),
+              Container(
+                padding: EdgeInsets.all(StyleConfig.edgeInsets),
+                width: StyleConfig.longInputWidth,
+                child: TextField(
+                    controller: controllerGroup.patternController,
+                    onChanged: (value) => _processResult(),
+                    maxLines: 1,
+                    keyboardType: TextInputType.text,
+                    decoration: InputDecoration(
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius:
+                            BorderRadius.circular(StyleConfig.borderRadius),
+                        borderSide: BorderSide(
+                            color: _themeController.theme.data.accentColor,
+                            width: StyleConfig.borderWidth),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius:
+                            BorderRadius.circular(StyleConfig.borderRadius),
+                        borderSide: BorderSide(
+                            color: _themeController.theme.data.disabledColor,
+                            width: StyleConfig.borderWidth),
+                      ),
+                      labelText: 'Match',
+                    )),
+              ),
+            ],
+          ),
+          trailing: Padding(
+            padding: EdgeInsets.only(right: StyleConfig.edgeInsets),
+            child: RaisedButton(
+              color: Colors.redAccent,
+              child: Icon(Icons.clear),
+              onPressed: () {
+                _removePipeline(index);
+                _processResult();
+              },
             ),
           ),
         ),
-      );
+        Divider()
+      ]);
     });
   }
 
@@ -491,104 +482,94 @@ class _MainPageState extends State<MainPage> {
       FindReplaceControllerGroup controllerGroup, int index) {
     return StatefulBuilder(
         builder: (BuildContext context, StateSetter setState) {
-      return Center(
-        child: Container(
-          width: StyleConfig.pipelinewidth,
-          padding: EdgeInsets.all(StyleConfig.edgeInsets),
-          child: Card(
-            elevation: StyleConfig.elevation,
-            child: ListTile(
-              title: Wrap(
-                  direction: Axis.horizontal,
-                  alignment: WrapAlignment.center,
-                  children: [
-                    Padding(
-                      padding: EdgeInsets.all(StyleConfig.edgeInsets),
-                      child: Column(
-                        children: [
-                          Text('Case Sensitive'),
-                          Switch(
-                              value: controllerGroup.caseSensitive,
-                              onChanged: (value) {
-                                setState(() =>
-                                    controllerGroup.caseSensitive = value);
-                                _processResult();
-                              })
-                        ],
-                      ),
-                    ),
-                    Container(
-                      padding: EdgeInsets.all(StyleConfig.edgeInsets),
-                      width: StyleConfig.longInputWidth,
-                      child: TextField(
-                          controller: controllerGroup.findController,
-                          onChanged: (value) => _processResult(),
-                          maxLines: 1,
-                          keyboardType: TextInputType.text,
-                          decoration: InputDecoration(
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(
-                                  StyleConfig.borderRadius),
-                              borderSide: BorderSide(
-                                  color:
-                                      _themeController.theme.data.accentColor,
-                                  width: StyleConfig.borderWidth),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(
-                                  StyleConfig.borderRadius),
-                              borderSide: BorderSide(
-                                  color:
-                                      _themeController.theme.data.disabledColor,
-                                  width: StyleConfig.borderWidth),
-                            ),
-                            labelText: 'Find',
-                          )),
-                    ),
-                    Container(
-                      padding: EdgeInsets.all(StyleConfig.edgeInsets),
-                      width: StyleConfig.longInputWidth,
-                      child: TextField(
-                          controller: controllerGroup.replaceController,
-                          onChanged: (value) => _processResult(),
-                          maxLines: 1,
-                          keyboardType: TextInputType.text,
-                          decoration: InputDecoration(
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(
-                                  StyleConfig.borderRadius),
-                              borderSide: BorderSide(
-                                  color:
-                                      _themeController.theme.data.accentColor,
-                                  width: StyleConfig.borderWidth),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(
-                                  StyleConfig.borderRadius),
-                              borderSide: BorderSide(
-                                  color:
-                                      _themeController.theme.data.disabledColor,
-                                  width: StyleConfig.borderWidth),
-                            ),
-                            labelText: 'Replace',
-                          )),
-                    ),
-                  ]),
-              trailing: Padding(
-                padding: EdgeInsets.only(right: StyleConfig.edgeInsets),
-                child: RaisedButton(
-                  color: Colors.redAccent,
-                  child: Icon(Icons.clear),
-                  onPressed: () {
-                    _removePipeline(index);
-                    _processResult();
-                  },
+      return Column(children: [
+        ListTile(
+          title: Wrap(
+              direction: Axis.horizontal,
+              alignment: WrapAlignment.center,
+              children: [
+                Padding(
+                  padding: EdgeInsets.all(StyleConfig.edgeInsets),
+                  child: Column(
+                    children: [
+                      Text('Case Sensitive'),
+                      Switch(
+                          value: controllerGroup.caseSensitive,
+                          onChanged: (value) {
+                            setState(
+                                () => controllerGroup.caseSensitive = value);
+                            _processResult();
+                          })
+                    ],
+                  ),
                 ),
-              ),
+                Container(
+                  padding: EdgeInsets.all(StyleConfig.edgeInsets),
+                  width: StyleConfig.longInputWidth,
+                  child: TextField(
+                      controller: controllerGroup.findController,
+                      onChanged: (value) => _processResult(),
+                      maxLines: 1,
+                      keyboardType: TextInputType.text,
+                      decoration: InputDecoration(
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius:
+                              BorderRadius.circular(StyleConfig.borderRadius),
+                          borderSide: BorderSide(
+                              color: _themeController.theme.data.accentColor,
+                              width: StyleConfig.borderWidth),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius:
+                              BorderRadius.circular(StyleConfig.borderRadius),
+                          borderSide: BorderSide(
+                              color: _themeController.theme.data.disabledColor,
+                              width: StyleConfig.borderWidth),
+                        ),
+                        labelText: 'Find',
+                      )),
+                ),
+                Container(
+                  padding: EdgeInsets.all(StyleConfig.edgeInsets),
+                  width: StyleConfig.longInputWidth,
+                  child: TextField(
+                      controller: controllerGroup.replaceController,
+                      onChanged: (value) => _processResult(),
+                      maxLines: 1,
+                      keyboardType: TextInputType.text,
+                      decoration: InputDecoration(
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius:
+                              BorderRadius.circular(StyleConfig.borderRadius),
+                          borderSide: BorderSide(
+                              color: _themeController.theme.data.accentColor,
+                              width: StyleConfig.borderWidth),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius:
+                              BorderRadius.circular(StyleConfig.borderRadius),
+                          borderSide: BorderSide(
+                              color: _themeController.theme.data.disabledColor,
+                              width: StyleConfig.borderWidth),
+                        ),
+                        labelText: 'Replace',
+                      )),
+                ),
+              ]),
+          trailing: Padding(
+            padding: EdgeInsets.only(right: StyleConfig.edgeInsets),
+            child: RaisedButton(
+              color: Colors.redAccent,
+              child: Icon(Icons.clear),
+              onPressed: () {
+                _removePipeline(index);
+                _processResult();
+              },
             ),
           ),
         ),
-      );
+        Divider()
+      ]);
     });
   }
 
