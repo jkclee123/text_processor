@@ -695,6 +695,8 @@ class _MainPageState extends State<MainPage> {
           RegExpMatch regExpMatch = regExp.firstMatch(sourceStr);
           if (regExpMatch.groupCount > 0) {
             resultStrList.add(regExpMatch.group(1));
+          } else {
+            resultStrList.add(regExpMatch.group(0));
           }
         } else {
           resultStrList.add(sourceStr);
