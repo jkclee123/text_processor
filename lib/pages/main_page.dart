@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:text_processor/controller_group/controller_group.dart';
 import 'package:text_processor/controller_group/findreplace_controller_group.dart';
@@ -32,6 +31,7 @@ class _MainPageState extends State<MainPage> {
   bool _distinct;
   TextEditingController _resultStrController;
   List<ControllerGroup> _controllerGroupList;
+  int _resultCount;
 
   @override
   void initState() {
@@ -51,6 +51,7 @@ class _MainPageState extends State<MainPage> {
     _distinct = false;
     _resultStrController = TextEditingController();
     _controllerGroupList = <ControllerGroup>[];
+    _resultCount = 0;
   }
 
   @override
@@ -589,6 +590,7 @@ class _MainPageState extends State<MainPage> {
                   decoration: InputDecoration(
                     border: InputBorder.none,
                     hintText: "Result",
+                    counterText: "$_resultCount",
                   ),
                 ))));
   }
@@ -620,12 +622,14 @@ class _MainPageState extends State<MainPage> {
   }
 
   void _resetEverything() {
-    _sourceStr1Controller.clear();
-    _templateStrController.clear();
-    _resultStrController.clear();
     while (_controllerGroupList.length > 0) {
       _removePipeline(0);
     }
+    _sourceStr1Controller.clear();
+    _sourceStr2Controller.clear();
+    _templateStrController.clear();
+    _resultStrController.clear();
+    _setResultCount(0);
   }
 
   void _setTextField(
@@ -641,6 +645,10 @@ class _MainPageState extends State<MainPage> {
     });
   }
 
+  void _setResultCount(int resultCount) {
+    setState(() => _resultCount = resultCount);
+  }
+
   void _processResult() {
     try {
       List<String> sourceStr1List = _separateStr(_sourceStr1Controller.text);
@@ -653,7 +661,11 @@ class _MainPageState extends State<MainPage> {
           _zipSourceList(sourceStr1List, sourceStr2List);
       List<String> resultStrList = _populateTemplate(sourceTupleList);
       String resultStr = _joinStr(resultStrList);
+      print(resultStrList);
+      print(resultStrList.length);
+      print(resultStrList.length > 0 ? resultStrList[0].length : "None");
       _setTextField(_resultStrController, resultStr);
+      _setResultCount(resultStrList[0].length > 0 ? resultStrList.length : 0);
     } catch (e, stacktrace) {
       if (Const.debugMode) {
         _completer.completeError(e, stacktrace);
