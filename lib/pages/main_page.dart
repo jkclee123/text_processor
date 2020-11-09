@@ -590,7 +590,7 @@ class _MainPageState extends State<MainPage> {
                   decoration: InputDecoration(
                     border: InputBorder.none,
                     hintText: "Result",
-                    counterText: "$_resultCount",
+                    helperText: "$_resultCount",
                   ),
                 ))));
   }
@@ -666,11 +666,10 @@ class _MainPageState extends State<MainPage> {
           _zipSourceList(sourceStr1List, sourceStr2List);
       List<String> resultStrList = _populateTemplate(sourceTupleList);
       String resultStr = _joinStr(resultStrList);
-      print(resultStrList);
-      print(resultStrList.length);
-      print(resultStrList.length > 0 ? resultStrList[0].length : "None");
       _setTextField(_resultStrController, resultStr);
-      _setResultCount(resultStrList[0].length > 0 ? resultStrList.length : 0);
+      _setResultCount(resultStrList.length == 1 && resultStrList[0].length == 0
+          ? 0
+          : resultStrList.length);
     } catch (e, stacktrace) {
       if (Const.debugMode) {
         _completer.completeError(e, stacktrace);
