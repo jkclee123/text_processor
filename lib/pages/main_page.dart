@@ -629,6 +629,10 @@ class _MainPageState extends State<MainPage> {
     _sourceStr2Controller.clear();
     _templateStrController.clear();
     _resultStrController.clear();
+    _setTextField(_splitSeparatorController, Const.default_split_separator);
+    _setTextField(_joinSeparatorController, Const.default_join_separator);
+    _setTextField(_placeholderController, Const.default_placeholder);
+    setState(() => _distinct = false);
     _setResultCount(0);
   }
 
@@ -651,6 +655,7 @@ class _MainPageState extends State<MainPage> {
 
   void _processResult() {
     try {
+      print("haha");
       List<String> sourceStr1List = _separateStr(_sourceStr1Controller.text);
       sourceStr1List = _processPipeline(sourceStr1List);
       sourceStr1List = _distinctResult(sourceStr1List);
