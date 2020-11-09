@@ -3,8 +3,8 @@ import 'package:flutter/rendering.dart';
 
 class StyleConfig {
   static double elevation = 5.0;
-  static int textFieldMinLines = 5;
-  static int templateTextFieldMinLines = 3;
+  static int textFieldMinLines = 6;
+  static int templateTextFieldMinLines = 4;
   static double shortInputWidth = 130;
   static double longInputWidth = 170;
   static double dropdownWidth = 200;
