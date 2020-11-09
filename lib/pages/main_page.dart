@@ -655,7 +655,6 @@ class _MainPageState extends State<MainPage> {
 
   void _processResult() {
     try {
-      print("haha");
       List<String> sourceStr1List = _separateStr(_sourceStr1Controller.text);
       sourceStr1List = _processPipeline(sourceStr1List);
       sourceStr1List = _distinctResult(sourceStr1List);
